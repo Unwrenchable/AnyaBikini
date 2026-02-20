@@ -1,1 +1,7 @@
-// Move your main.js here for Vercel static hosting
+// =========================================
+// ANYA BIKINI - Main JavaScript
+// =========================================
+
+document.addEventListener('DOMContentLoaded', () => {
+	// ...existing code from scripts/main.js...
+});
