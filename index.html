@@ -11,6 +11,10 @@
   <meta property="og:url" content="https://www.anyabikini.com/" />
   <title>Anya Bikini — Born for the Beach</title>
 
+  <!-- Configure publishable keys (fill via server or build process) -->
+  <meta name="stripe-publishable-key" content="">
+  <meta name="api-base" content="/api">
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -831,7 +835,67 @@
   <!-- Screen reader only utility -->
   <style>.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }</style>
 
+  <!-- Auth modal + Cart drawer (client-driven) -->
+  <div id="auth-modal" class="modal" aria-hidden="true" style="display:none;">
+    <div class="modal-inner">
+      <button class="modal-close" aria-label="Close">✕</button>
+      <div class="auth-forms">
+        <form id="register-form" class="auth-form" style="display:block;">
+          <h3>Create account</h3>
+          <input name="name" placeholder="Full name" />
+          <input name="email" type="email" placeholder="Email" />
+          <input name="password" type="password" placeholder="Password" />
+          <button type="submit" class="btn">Create account</button>
+        </form>
+        <form id="login-form" class="auth-form" style="display:none;">
+          <h3>Sign in</h3>
+          <input name="email" type="email" placeholder="Email" />
+          <input name="password" type="password" placeholder="Password" />
+          <button type="submit" class="btn">Sign in</button>
+        </form>
+        <div class="auth-toggle">
+          <button id="show-login">Have an account? Sign in</button>
+          <button id="show-register">New here? Create account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside id="cart-drawer" style="display:none;" aria-hidden="true" class="cart-drawer">
+    <div class="cart-inner">
+      <button class="cart-close" aria-label="Close">✕</button>
+      <h3>Your cart</h3>
+      <div id="cart-items"></div>
+      <div class="cart-summary">
+        <div id="cart-total">Total: $0.00</div>
+        <div class="cart-actions">
+          <button id="btn-checkout" class="btn btn-primary">Checkout (Stripe Checkout)</button>
+          <button id="btn-pay-card" class="btn">Pay with Card</button>
+        </div>
+        <div id="card-payment" style="display:none; margin-top:12px;">
+          <div id="card-element" style="padding:12px; border:1px solid #eee; border-radius:6px;"></div>
+          <button id="btn-confirm-card" class="btn btn-primary" style="margin-top:8px;">Confirm Payment</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Dynamic Instagram gallery (populated from server if configured) -->
+  <div id="instagram-gallery" class="instagram-gallery container" style="display:none;">
+    <h3>Latest from Instagram</h3>
+    <div id="instagram-photos" class="instagram-photos-grid"></div>
+  </div>
+
+  <!-- Product detail modal -->
+  <div id="product-modal" class="modal" style="display:none;">
+    <div class="modal-inner">
+      <button class="modal-close" aria-label="Close">✕</button>
+      <div id="product-modal-body"></div>
+    </div>
+  </div>
+
   <!-- JavaScript -->
+  <script src="https://js.stripe.com/v3/"></script>
   <script src="scripts/main.js"></script>
 
 </body>
