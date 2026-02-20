@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const axios = require('axios');
+const path = require('path');
 
 dotenv.config();
 console.log('ADMIN_TOKEN from env =', process.env.ADMIN_TOKEN);
