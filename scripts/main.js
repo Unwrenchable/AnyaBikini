@@ -281,6 +281,19 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.setAttribute('aria-hidden', 'false');
     $qs('#register-form').style.display = showRegister ? 'block' : 'none';
     $qs('#login-form').style.display = showRegister ? 'none' : 'block';
+
+    // when showing login form, attempt to auto-fill credentials
+    if (!showRegister && navigator.credentials && navigator.credentials.get) {
+      navigator.credentials.get({password: true, mediation: 'optional'})
+        .then(cred => {
+          if (cred) {
+            const loginForm = $qs('#login-form');
+            loginForm.querySelector('input[name="email"]').value = cred.id || '';
+            loginForm.querySelector('input[name="password"]').value = cred.password || '';
+          }
+        })
+        .catch(() => {});
+    }
   }
   function closeAuthModal() {
     const modal = $qs('#auth-modal');
@@ -359,6 +372,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = form.querySelector('input[name="password"]').value;
     const resp = await fetchJSON(API_BASE + '/register', { method: 'POST', body: JSON.stringify({ name, email, password }) });
     if (resp && resp.ok) {
+      // save credentials so browser can autofill later
+      try {
+        if (navigator.credentials && navigator.credentials.store) {
+          await navigator.credentials.store(new PasswordCredential({
+            id: email,
+            password,
+            name
+          }));
+        }
+      } catch (err) {
+        console.warn('credential store failed', err);
+      }
+
       closeAuthModal();
       showToast('Account created — you are signed in.');
       updateUserAccountUI();
@@ -373,8 +399,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = e.target;
     const email = form.querySelector('input[name="email"]').value;
     const password = form.querySelector('input[name="password"]').value;
+    const remember = form.querySelector('#remember-me')?.checked;
     const resp = await fetchJSON(API_BASE + '/login', { method: 'POST', body: JSON.stringify({ email, password }) });
     if (resp && resp.ok) {
+      if (remember) {
+        try {
+          if (navigator.credentials && navigator.credentials.store) {
+            await navigator.credentials.store(new PasswordCredential({
+              id: email,
+              password
+            }));
+          }
+        } catch (err) {
+          console.warn('credential store failed', err);
+        }
+      }
       closeAuthModal();
       showToast('Signed in');
       updateUserAccountUI();

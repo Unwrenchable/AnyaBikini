@@ -851,17 +851,18 @@
     <div class="modal-inner">
       <button class="modal-close" aria-label="Close">✕</button>
       <div class="auth-forms">
-        <form id="register-form" class="auth-form" style="display:block;">
+        <form id="register-form" class="auth-form" style="display:block;" autocomplete="on">
           <h3>Create account</h3>
           <input name="name" placeholder="Full name" autocomplete="name" />
-          <input name="email" type="email" placeholder="Email" autocomplete="email" />
+          <input name="email" type="email" placeholder="Email" autocomplete="username email" />
           <input name="password" type="password" placeholder="Password" autocomplete="new-password" />
           <button type="submit" class="btn">Create account</button>
         </form>
-        <form id="login-form" class="auth-form" style="display:none;">
+        <form id="login-form" class="auth-form" style="display:none;" autocomplete="on">
           <h3>Sign in</h3>
-          <input name="email" type="email" placeholder="Email" autocomplete="email" />
+          <input name="email" type="email" placeholder="Email" autocomplete="username email" />
           <input name="password" type="password" placeholder="Password" autocomplete="current-password" />
+          <label class="remember-me"><input type="checkbox" id="remember-me" name="remember" /> Remember me</label>
           <button type="submit" class="btn">Sign in</button>
         </form>
         <div class="auth-toggle">
