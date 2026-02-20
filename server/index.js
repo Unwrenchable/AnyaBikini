@@ -102,10 +102,15 @@ function createOrder({ user_id, items, amount_cents }) {
   return order;
 }
 
+
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
+
+// Advanced feature: Wishlist API
+const wishlistController = require('./controllers/advanced/wishlistController');
+app.use('/api/wishlist', authMiddleware, wishlistController);
 
 function signToken(payload) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
