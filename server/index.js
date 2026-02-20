@@ -23,7 +23,6 @@ if (STRIPE_SECRET_KEY) {
 }
 
 const fs = require('fs');
-const path = require('path');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const dataDir = path.dirname(DB_JSON);
