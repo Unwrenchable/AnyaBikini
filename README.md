@@ -1,374 +1,584 @@
-# AnyaBikini
+# 🌊 Anya Bikini
 
->AnyaBikini is a modern e-commerce web app for a handcrafted swimwear brand. It features a Node.js/Express backend, a static HTML/CSS/JS frontend, Stripe payments, Instagram integration, and a simple admin panel.
+**A modern, full-stack e-commerce platform for handcrafted swimwear**
 
----
+Anya Bikini is a production-ready e-commerce web application built for boutique swimwear brands. It combines elegant design with powerful features including secure user authentication, Stripe payment processing, Instagram integration, and a comprehensive admin panel—all built with vanilla JavaScript, Node.js, and Express.
 
-## Features
-
-- Beautiful, responsive storefront (HTML/CSS/JS)
-- Product catalog (dynamic from server or static fallback)
-- User authentication (email/password, JWT cookies)
-- Shopping cart and checkout (Stripe integration)
-- Instagram gallery (server fetches latest posts)
-- Admin panel for orders, users, and product management
-- Newsletter signup (front-end only)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 
 ---
 
-## Local Development
+## ✨ Features
 
-### 1. Clone the repo and install dependencies
+### 🛍️ **E-Commerce Core**
+- **Product Catalog** - Dynamic product management with categories (Sets, Tops, Bottoms, One Pieces, Cover Ups)
+- **Shopping Cart** - Client-side cart with localStorage persistence and real-time updates
+- **Secure Checkout** - Dual payment flows via Stripe (hosted checkout and in-page card payments)
+- **Order Management** - Complete order tracking and persistence
+- **Product Filtering** - Real-time category filtering on the storefront
+
+### 👤 **User Management**
+- **JWT Authentication** - Secure registration and login with HTTP-only cookies
+- **Email Verification** - Optional email verification with token-based links
+- **User Profiles** - Authenticated user profile management
+- **Password Security** - Bcrypt hashing with salt rounds, minimum 6-character enforcement
+- **Session Management** - 30-day token expiration with automatic refresh
+
+### 💳 **Payment Processing**
+- **Stripe Integration** - Full Stripe payment processing with PCI compliance
+- **Multiple Payment Methods** - Cards, Apple Pay, Google Pay, and more
+- **Hosted Checkout** - Redirect to Stripe's hosted payment page
+- **In-Page Payments** - Stripe Elements for seamless card entry
+- **Payment Intents** - Modern payment flow with automatic payment method detection
+
+### 📱 **Social & Marketing**
+- **Instagram Feed** - Live Instagram post integration with automatic syncing
+- **Wishlist System** - Per-user wishlist with add/remove functionality
+- **Newsletter Signup** - Email capture for marketing campaigns
+- **SEO Optimization** - Dynamic sitemap, robots.txt, and JSON-LD structured data
+- **Social Sharing** - Open Graph meta tags for rich social previews
+
+### 🔧 **Admin Dashboard**
+- **Product Management** - Full CRUD operations with drag-to-reorder
+- **User Management** - View all registered users and account details
+- **Order Dashboard** - Complete order history and tracking
+- **Instagram Sync** - One-click sync of Instagram posts to product catalog
+- **Undo History** - Multi-level undo for product changes (up to 5 levels)
+- **Token Authentication** - Secure admin access with environment-based tokens
+
+### 🎨 **Design & UX**
+- **Responsive Design** - Mobile-first, fully responsive across all devices
+- **Modern UI** - Clean, elegant interface with smooth animations
+- **Accessibility** - ARIA labels, semantic HTML, keyboard navigation
+- **Interactive Elements** - Modals, drawers, toasts, and smooth scrolling
+- **Color Swatches** - Interactive product color selection
+- **Scroll Animations** - IntersectionObserver-based reveal effects
+
+### 🔒 **Security & Performance**
+- **Content Security Policy** - Strict CSP headers preventing XSS and code injection
+- **Security Headers** - Complete security header suite (HSTS, X-Frame-Options, etc.)
+- **Password Hashing** - Bcrypt with 10 salt rounds
+- **HTTP-Only Cookies** - XSS-resistant authentication
+- **CSRF Protection** - SameSite cookie policy
+- **Input Validation** - Server-side email and password validation
+- **Image Optimization** - Lazy loading for all product images
+
+---
+
+## 🏗️ Architecture
+
+### Technology Stack
+
+**Frontend:**
+- Vanilla JavaScript (no framework dependencies)
+- HTML5 with semantic markup
+- CSS3 with CSS Variables for theming
+- Google Fonts (Cormorant Garamond, Montserrat)
+- Stripe.js for payment handling
+
+**Backend:**
+- Node.js 18+
+- Express.js web framework
+- JSON file-based database (upgradable to PostgreSQL/MongoDB)
+- JWT for authentication
+- Bcrypt for password hashing
+- Nodemailer for transactional emails
+
+**Payment & Integrations:**
+- Stripe API for payment processing
+- Instagram Graph API for feed integration
+- SMTP for email delivery (optional)
+
+**Deployment:**
+- Vercel-ready configuration
+- Serverless API functions support
+- Environment-based configuration
+- Static file serving
+
+### Project Structure
+
+```
+AnyaBikini/
+├── 📄 index.html              # Main storefront (47KB)
+├── 📄 admin.html              # Admin dashboard (22KB)
+├── 📁 scripts/
+│   └── main.js                # Frontend logic (588 lines)
+├── 📁 styles/
+│   └── main.css               # Styling (32KB, 1,642 lines)
+├── 📁 server/
+│   ├── index.js               # Express server (504 lines)
+│   ├── 📁 controllers/
+│   │   └── advanced/
+│   │       └── wishlistController.js
+│   └── 📁 services/
+│       ├── userService.js
+│       ├── stripeService.js
+│       ├── emailService.js
+│       ├── instagramService.js
+│       ├── orderService.js
+│       ├── productService.js
+│       └── advanced/
+│           ├── wishlistService.js
+│           ├── discountService.js    # Ready for extension
+│           ├── inventoryService.js   # Ready for extension
+│           ├── reviewService.js      # Ready for extension
+│           └── variantService.js     # Ready for extension
+├── 📁 api/                    # Vercel serverless functions
+├── 📁 data/                   # JSON database storage
+├── 📄 products.json           # Product catalog
+├── 📄 vercel.json             # Deployment configuration
+└── 📄 package.json            # Dependencies and scripts
+```
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- Stripe account (for payment processing)
+- Instagram Business account (optional, for feed integration)
+- SMTP credentials (optional, for email verification)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/AnyaBikini.git
+   cd AnyaBikini
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**
+
+   Create a `.env` file in the root directory:
+   ```bash
+   # Required
+   JWT_SECRET=your_random_secret_key_minimum_32_characters
+   ADMIN_TOKEN=your_secure_admin_token
+   STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+   STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+
+   # Optional
+   INSTAGRAM_ACCESS_TOKEN=your_instagram_business_token
+   INSTAGRAM_USER_ID=your_instagram_user_id
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your_email@gmail.com
+   SMTP_PASS=your_app_password
+   FROM_EMAIL=noreply@anyabikini.com
+   DATABASE_PATH=./data/db.json
+   PORT=3000
+   ```
+
+4. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open in browser**
+
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Build for Production
 
 ```bash
-git clone <your-repo-url>
-cd AnyaBikini
-npm install
+npm run build
 ```
 
-### 2. Set up environment variables
-
-Create a `.env` file in the root directory:
-
-```bash
-# Required for authentication
-JWT_SECRET=your_random_secret_key_here
-ADMIN_TOKEN=your_admin_token_here
-
-# Required for Stripe payments
-STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
-STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
-
-# Optional: Instagram integration
-INSTAGRAM_ACCESS_TOKEN=your_instagram_token
-INSTAGRAM_USER_ID=your_instagram_user_id
-
-# Optional: Email configuration (for verification emails)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-FROM_EMAIL=noreply@anyabikini.com
-
-# Database path (default: ./data/db.json)
-DATABASE_PATH=./data/db.json
-
-# Server port (default: 3000)
-PORT=3000
-```
-
-**Important**: Never commit your `.env` file to version control!
-
-### 3. Start the server
-
-```bash
-# For development:
-npm run dev
-
-# Or for production:
-npm start
-```
-
-### 4. Open the site
-
-Go to [http://localhost:3000/](http://localhost:3000/) in your browser.
+This creates a `public/` directory with optimized static assets ready for deployment.
 
 ---
 
-## Environment Variables
+## 📚 API Reference
 
-See `server/.env.example` for all options. **Never commit your real `.env` file!**
+### Authentication Endpoints
 
-Key variables:
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/api/register` | Create new user account | No |
+| `POST` | `/api/login` | Sign in with credentials | No |
+| `POST` | `/api/logout` | Clear authentication session | No |
+| `GET` | `/api/profile` | Get current user profile | Yes |
 
-- `JWT_SECRET` — Secret for signing JWTs (required)
-- `ADMIN_TOKEN` — Token for admin endpoints (required for admin.html)
-- `STRIPE_SECRET_KEY` — Stripe secret key (required for payments)
-- `STRIPE_PUBLISHABLE_KEY` — Stripe publishable key (frontend)
-- `INSTAGRAM_ACCESS_TOKEN` and `INSTAGRAM_USER_ID` — For Instagram gallery (optional)
-- `DATABASE_PATH` — Path to JSON DB (default: `./data/db.json`)
-- `PORT` — Server port (default: 3000)
+**Example: User Registration**
+```javascript
+POST /api/register
+Content-Type: application/json
 
----
-
-## Admin Panel
-
-Open `admin.html` in your browser. Enter your `ADMIN_TOKEN` to view/manage users, orders, and products.
-
----
-
-## Deployment Guide
-
-### 1. Prepare your environment
-
-- Provision a VPS, cloud instance, or use a platform like Heroku, Render, or Railway.
-- Install Node.js (v18+ recommended) and npm.
-- Set up a reverse proxy (e.g., Nginx) for HTTPS (recommended for production).
-
-### 2. Set environment variables
-
-- Copy `server/.env.example` to `server/.env` and fill in all secrets and keys.
-- **Never commit `.env` to your repo.**
-
-### 3. Install dependencies and build (if needed)
-
-```bash
-cd server
-npm install
-# (No build step needed for static frontend)
-```
-
-### 4. Start the server
-
-```bash
-# For production (use a process manager like pm2 or systemd):
-npm start
-# Example with pm2:
-npm install -g pm2
-pm2 start index.js --name anyabikini
-```
-
-### 5. Serve static files
-
-- The server will serve the frontend from the project root by default.
-- Ensure your reverse proxy (if used) points to the correct port (default: 3000).
-
-### 6. Set up HTTPS (strongly recommended)
-
-- Use Let's Encrypt or your provider's SSL tools.
-- Redirect HTTP to HTTPS in your proxy config.
-
-### 7. Monitor and update
-
-- Use pm2, systemd, or your platform's tools to keep the server running and restart on failure.
-- Pull updates and restart as needed.
-
----
-
-## Example Nginx Reverse Proxy Config
-
-This config will:
-- Forward HTTPS traffic from your domain to the Node.js server (running on localhost:3000)
-- Redirect all HTTP traffic to HTTPS
-- Serve static files efficiently
-
-```
-server {
-    listen 80;
-    server_name yourdomain.com www.yourdomain.com;
-    return 301 https://$host$request_uri;
+{
+  "email": "customer@example.com",
+  "password": "securepass123",
+  "name": "Jane Doe"
 }
+```
 
-server {
-    listen 443 ssl;
-    server_name yourdomain.com www.yourdomain.com;
+### Product Endpoints
 
-    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/api/products` | List all published products | No |
+| `GET` | `/product/:id` | SEO-optimized product page | No |
+| `GET` | `/api/config` | Get public configuration | No |
 
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_cache_bypass $http_upgrade;
+### Shopping Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/api/create-order` | Create order record | Yes |
+| `POST` | `/api/create-checkout-session` | Create Stripe hosted checkout | No |
+| `POST` | `/api/create-payment-intent` | Create in-page payment | No |
+
+**Example: Create Checkout Session**
+```javascript
+POST /api/create-checkout-session
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "name": "Sunset Stripe Bikini Set",
+      "price": 98.00,
+      "quantity": 1
     }
+  ]
 }
 ```
 
+### Wishlist Endpoints (Authentication Required)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/wishlist` | Get user's wishlist |
+| `POST` | `/api/wishlist/add` | Add product to wishlist |
+| `POST` | `/api/wishlist/remove` | Remove product from wishlist |
+| `POST` | `/api/wishlist/clear` | Clear entire wishlist |
+
+### Admin Endpoints (Token Required)
+
+| Method | Endpoint | Description | Header |
+|--------|----------|-------------|--------|
+| `GET` | `/api/admin/users` | List all users | `X-Admin-Token` |
+| `GET` | `/api/admin/orders` | List all orders | `X-Admin-Token` |
+| `POST` | `/api/admin/save-products` | Update product catalog | `X-Admin-Token` |
+| `POST` | `/api/admin/sync-instagram` | Sync Instagram posts | `X-Admin-Token` |
+
+### Social & SEO Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/instagram` | Fetch latest Instagram posts |
+| `GET` | `/sitemap.xml` | XML sitemap for SEO |
+| `GET` | `/robots.txt` | Robots.txt for crawlers |
+
 ---
 
-## Example pm2 Setup
+## 🎨 Customization
 
-pm2 is a process manager for Node.js. It will:
-- Keep your server running in the background
-- Restart it if it crashes
-- Make it easy to view logs and manage deployments
+### Branding & Colors
 
-Install pm2 globally:
-```bash
-npm install -g pm2
+Edit the CSS variables in `styles/main.css`:
+
+```css
+:root {
+  --color-primary: #c9785c;        /* Coral/Warm Brown */
+  --color-primary-light: #e8a98a;  /* Sand */
+  --color-accent: #4a8fa8;         /* Ocean Blue */
+  --color-dark: #2c2420;           /* Noir */
+  --color-light: #9e8d82;          /* Light Gray */
+}
 ```
 
-Start your server:
-```bash
-cd server
-pm2 start index.js --name anyabikini
+### Typography
+
+Modify the Google Fonts import in `index.html`:
+
+```html
+<link href="https://fonts.googleapis.com/css2?family=YourFont&display=swap" rel="stylesheet" />
 ```
 
-To auto-start on reboot:
-```bash
-pm2 startup
-pm2 save
+### Product Categories
+
+Update filter buttons in `index.html` and adjust the `data-category` attributes on product cards.
+
+---
+
+## 🔐 Security
+
+### Best Practices Implemented
+
+✅ **Password Security**
+- Minimum 6-character requirement
+- Bcrypt hashing with 10 salt rounds
+- Never stored or transmitted in plain text
+
+✅ **Session Security**
+- JWT tokens in HTTP-only cookies
+- SameSite=Lax for CSRF protection
+- 30-day expiration with automatic refresh
+
+✅ **Content Security Policy**
+- Strict CSP headers blocking unsafe scripts
+- No eval() or inline script execution
+- Whitelisted external sources (Stripe, Google Fonts)
+
+✅ **Security Headers**
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `X-XSS-Protection: 1; mode=block`
+- `Strict-Transport-Security` with HSTS
+
+✅ **Payment Security**
+- Stripe handles PCI compliance
+- No card data stored locally
+- Secure Payment Intent API
+
+✅ **Input Validation**
+- Server-side email format validation
+- Password strength enforcement
+- Sanitized database queries
+
+### Security Checklist
+
+- [ ] Generate strong `JWT_SECRET` (32+ characters)
+- [ ] Set secure `ADMIN_TOKEN`
+- [ ] Use HTTPS in production (required for secure cookies)
+- [ ] Never commit `.env` file to git
+- [ ] Regularly update dependencies (`npm audit`)
+- [ ] Enable SMTP for email verification
+- [ ] Configure firewall rules for production server
+
+---
+
+## 📊 Database Schema
+
+The application uses a JSON-based file database (`data/db.json`) with the following structure:
+
+```javascript
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "user@example.com",
+      "password": "$2a$10$...",  // bcrypt hash
+      "name": "User Name",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "verifyToken": "abc123...",
+      "verifyExpires": 1234567890
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "items": [...],
+      "amount_cents": 4999,
+      "currency": "usd",
+      "status": "created",
+      "created_at": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "wishlists": {
+    "1": ["product_id_1", "product_id_2"]
+  },
+  "nextUserId": 2,
+  "nextOrderId": 2
+}
 ```
 
-View logs:
-```bash
-pm2 logs anyabikini
-```
+### Migration Path
+
+For high-traffic production use, migrate to:
+- **PostgreSQL** - Relational data with ACID compliance
+- **MongoDB** - Document-based NoSQL for flexibility
+- **Redis** - Session storage and caching layer
 
 ---
 
-## Example Cloud Deployment (Render.com)
+## 🎯 Use Cases
 
-Render.com is a simple cloud platform for Node.js apps. This will:
-- Deploy your app from GitHub
-- Handle environment variables securely
-- Provide HTTPS automatically
+### Perfect For:
 
-**Steps:**
-1. Push your repo to GitHub (do not include .env)
-2. Create a new Web Service on Render
-3. Set the root directory to `/server`
-4. Set the start command to `npm start`
-5. Add all required environment variables in the Render dashboard
-6. Deploy!
+- 🩱 **Boutique Swimwear Brands** - Showcase handcrafted collections
+- 👗 **Fashion E-Commerce** - Clothing, accessories, and lifestyle products
+- 🎨 **Artist Merchandise** - Sell art prints, apparel, and custom goods
+- 📸 **Instagram-First Brands** - Integrate social commerce seamlessly
+- 🚀 **Startup MVPs** - Launch quickly with production-ready features
+- 🏪 **Small Business Online Stores** - Professional e-commerce without complexity
 
-You can use similar steps for Railway, Heroku, or other platforms.
+### Key Benefits:
 
----
-
-## Advanced Features for High-End Fashion & Merch Sites
-
-A premium e-commerce experience often includes:
-
-### Shopping & Merchandising
-- Product bundles and curated collections
-- Limited edition drops and countdown timers
-- Pre-orders and back-in-stock notifications
-- Virtual fitting rooms or AI-powered size prediction
-- User-generated content galleries (customer photos, Instagram feeds)
-
-### Personalization & Engagement
-- Personalized homepages and product feeds
-- Dynamic pricing and targeted offers
-- Customer profiles with order history and preferences
-- Birthday/anniversary rewards
-
-### Checkout & Payments
-- Express checkout (Apple Pay, Google Pay, Shop Pay, PayPal, etc.)
-- Buy Now, Pay Later (Afterpay, Klarna, Affirm)
-- Saved payment methods and addresses
-- One-click reordering
-
-### Operations & Integrations
-- Integration with POS systems for omnichannel retail
-- Dropshipping or print-on-demand support
-- Automated fraud detection
-- Multi-warehouse inventory and fulfillment
-
-### Marketing & Growth
-- Affiliate and influencer management platforms
-- Advanced segmentation for email/SMS campaigns
-- On-site popups and exit-intent offers
-- A/B testing for landing pages and product detail pages
-
-### Technology & Performance
-- Headless commerce architecture (API-driven frontend)
-- JAMstack or SPA frameworks (Next.js, Nuxt, Gatsby, etc.)
-- Real-time search and filtering (Algolia, Elasticsearch)
-- Image optimization and lazy loading
-
-### Accessibility & Trust
-- Accessibility (WCAG 2.1+) compliance
-- Trust badges and verified reviews
-- Transparent sustainability and sourcing info
+✅ No monthly platform fees (just payment processing)
+✅ Full control over design and functionality
+✅ Own your customer data and relationships
+✅ Easy customization and white-labeling
+✅ Production-ready security and payments
+✅ Mobile-responsive out of the box
 
 ---
 
-**Implementing these features can significantly boost conversion rates, customer loyalty, and brand reputation.**
+## 🛠️ Advanced Features
 
-If you want to prioritize or explore any of these, I can help you plan or prototype them for your project.
+### Planned Enhancements
 
----
+The codebase includes stubs and services ready for extension:
 
-## Security Notes
+- **Discount Codes** - `discountService.js` stub for coupon functionality
+- **Inventory Tracking** - `inventoryService.js` for stock management
+- **Product Reviews** - `reviewService.js` for customer ratings
+- **Product Variants** - `variantService.js` for size/color options
+- **Email Notifications** - Order confirmations and shipping updates
+- **Subscription Payments** - Recurring billing integration
+- **Multi-Currency Support** - International sales
+- **Analytics Integration** - Google Analytics, Facebook Pixel
+- **A/B Testing** - Conversion rate optimization
 
-### Authentication System
+### Extensibility
 
-The app includes a complete JWT-based authentication system:
-
-**Features:**
-- User registration with email validation and password strength requirements
-- Secure login with bcrypt password hashing
-- JWT tokens stored in HTTP-only cookies for security
-- Email verification (optional, requires SMTP configuration)
-- Profile management
-- Protected routes for authenticated users
-
-**Password Requirements:**
-- Minimum 6 characters
-- Passwords are hashed using bcryptjs with 10 salt rounds
-
-**Cookie Security:**
-- HTTP-only cookies prevent XSS attacks
-- SameSite=Lax prevents CSRF attacks
-- 30-day expiration for user convenience
-- Tokens are signed with JWT_SECRET
-
-**To test authentication locally:**
-1. Start the server
-2. Open the homepage and click the user account icon
-3. Create a new account or sign in
-4. The account button will change color when logged in
-
-### General Security Best Practices
-
-- Never commit `.env` or secrets to git.
-- Use strong, unique values for all secrets (especially JWT_SECRET).
-- Keep dependencies up to date (`npm audit` regularly).
-- Use HTTPS in production (required for secure cookies).
-- Passwords are never stored in plain text.
+The modular architecture makes it easy to add:
+- Third-party integrations (Mailchimp, Klaviyo, etc.)
+- Advanced search and filtering (Algolia, Elasticsearch)
+- Recommendation engines
+- Live chat support (Intercom, Drift)
+- Multi-warehouse fulfillment
+- Dropshipping integration
 
 ---
 
-## Longevity & Upgradability Features
+## 📈 Performance
 
-To ensure your site is easy to maintain, extend, and upgrade over time, implement these foundational practices:
+### Optimizations Included
 
-### 1. Modular Code Structure
-- Separate backend (API), frontend (UI), and admin logic into clear folders/modules
-- Use environment variables for all secrets and config
-- Keep business logic (orders, users, products) in dedicated service files
+- **Lazy Loading** - Images load on scroll for faster initial page load
+- **CSS Variables** - Dynamic theming without JavaScript overhead
+- **LocalStorage Cart** - Instant cart operations without server requests
+- **Intersection Observer** - Efficient scroll-based animations
+- **Minimal Dependencies** - Vanilla JS reduces bundle size
+- **CDN-Ready** - Static assets can be served from CDN
 
-### 2. API-First Design
-- Expose all business logic via RESTful APIs
-- Document endpoints (OpenAPI/Swagger or markdown)
-- Make the frontend consume only the API (enables headless upgrades)
+### Scalability Notes
 
-### 3. Dependency Management
-- Use a package manager (npm) and keep dependencies up to date
-- Document all required packages and versions
-- Use .nvmrc or engines in package.json to specify Node.js version
+The current JSON database is suitable for:
+- ✅ Development and testing
+- ✅ Low to moderate traffic (< 100 concurrent users)
+- ✅ Prototypes and MVPs
 
-### 4. Environment & Secrets Management
-- Use .env files (never commit real secrets)
-- Document all required environment variables
-- Support staging/production environments
-
-### 5. Testing & CI
-- Add basic automated tests (Jest, Mocha, etc.) for API endpoints and business logic
-- Set up CI (GitHub Actions, etc.) for linting and tests on every push
-
-### 6. Documentation
-- Keep README and code comments up to date
-- Add a /docs folder for API, architecture, and upgrade notes
-
-### 7. Upgrade Path
-- Use semantic versioning for releases
-- Document breaking changes and migration steps
-- Keep a CHANGELOG.md
+For production scale:
+- Migrate to PostgreSQL/MongoDB for concurrent access
+- Add Redis for session storage and caching
+- Implement CDN for static assets (images, CSS, JS)
+- Use load balancer for horizontal scaling
+- Add monitoring (New Relic, DataDog, etc.)
 
 ---
 
-**Next Steps:**
-- Refactor code for modularity (split large files, use services/controllers)
-- Add API documentation and upgrade notes
-- Set up basic tests and CI
+## 🤝 Contributing
 
-Let me know if you want to start with code refactoring, documentation, or CI setup!
+Contributions are welcome! Please follow these guidelines:
 
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### Code Standards
+
+- Use meaningful variable and function names
+- Comment complex logic
+- Follow existing code style
+- Test your changes thoroughly
+- Update documentation as needed
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Stripe** - Payment processing infrastructure
+- **Vercel** - Deployment platform and serverless functions
+- **Google Fonts** - Typography (Cormorant Garamond, Montserrat)
+- **Unsplash** - Sample product imagery
+- **Instagram Graph API** - Social media integration
+
+---
+
+## 📞 Support & Contact
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/AnyaBikini/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/AnyaBikini/discussions)
+- **Email**: support@anyabikini.com
+
+---
+
+## 🗺️ Roadmap
+
+### Version 2.0 (Planned)
+
+- [ ] Customer dashboard with order history
+- [ ] Advanced product search and filters
+- [ ] Product review system
+- [ ] Discount code engine
+- [ ] Inventory management
+- [ ] Email notification system
+- [ ] Multi-language support
+- [ ] Admin analytics dashboard
+
+### Version 3.0 (Future)
+
+- [ ] Mobile app (React Native)
+- [ ] Subscription box service
+- [ ] Loyalty program
+- [ ] Advanced SEO tools
+- [ ] Multi-vendor marketplace
+- [ ] AR try-on integration
+
+---
+
+## 💡 Getting Help
+
+**Quick Links:**
+- [API Documentation](docs/README.md)
+- [Deployment Guide](docs/deployment.md)
+- [Security Best Practices](docs/security.md)
+- [Troubleshooting](docs/troubleshooting.md)
+
+**Common Questions:**
+
+**Q: How do I get Stripe test keys?**
+A: Sign up at [stripe.com](https://stripe.com), navigate to Developers → API Keys, and use the test mode keys.
+
+**Q: Can I use this for products other than swimwear?**
+A: Absolutely! The platform is fully customizable for any e-commerce use case.
+
+**Q: Is this production-ready?**
+A: Yes, with proper environment configuration and HTTPS setup. Consider migrating to a production database for high traffic.
+
+**Q: How do I add more payment methods?**
+A: Enable additional payment methods in your Stripe Dashboard. The app supports all Stripe payment methods.
+
+**Q: Can I white-label this?**
+A: Yes, the MIT license allows full customization and white-labeling.
+
+---
+
+<p align="center">
+  Made with ❤️ by the Anya Bikini Team
+</p>
+
+<p align="center">
+  <a href="https://www.anyabikini.com">Website</a> •
+  <a href="https://www.instagram.com/anyabikini">Instagram</a> •
+  <a href="https://github.com/yourusername/AnyaBikini">GitHub</a>
+</p>
