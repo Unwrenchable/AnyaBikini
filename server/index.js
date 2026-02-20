@@ -111,6 +111,19 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  // Content Security Policy - no eval or unsafe-inline, allow Stripe and external resources
+  res.setHeader('Content-Security-Policy',
+    "default-src 'self'; " +
+    "script-src 'self' https://js.stripe.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "img-src 'self' data: https: http:; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "connect-src 'self' https://api.stripe.com; " +
+    "frame-src https://js.stripe.com; " +
+    "object-src 'none'; " +
+    "base-uri 'self'; " +
+    "form-action 'self'"
+  );
   next();
 });
 

@@ -532,6 +532,9 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.querySelector('.modal-close')?.addEventListener('click', () => { modal.style.display='none'; modal.setAttribute('aria-hidden','true'); });
   }
 
+  // Store products in a module-scoped Map to avoid CSP issues with JSON.parse
+  const productsMap = new Map();
+
   // Load server-managed products and replace static grid if present
   async function loadProducts() {
     try {
@@ -543,6 +546,8 @@ document.addEventListener('DOMContentLoaded', () => {
         resp.products.forEach(p => {
           // only show if published (default true)
           if (p.published === false) return;
+          const productId = p.sku || p.id || String(Math.random());
+          productsMap.set(productId, p); // Store in Map to avoid JSON.parse
           const card = document.createElement('div'); card.className = 'product-card';
           const priceText = `$${(p.price||0).toFixed(2)}`;
           card.innerHTML = `
@@ -551,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <button class="product-wishlist" aria-label="Add to wishlist">♥</button>
               <div class="product-actions">
                 <button class="product-quick-add" data-name="${(p.name||'').replace(/"/g,'&quot;')}" data-price="${(p.price||0)}" data-sku="${p.sku||p.id||''}">Quick Add</button>
-                <button class="product-preview" data-product='${JSON.stringify(p).replace(/'/g, "\\'") }'>Preview</button>
+                <button class="product-preview" data-product-id="${productId}">Preview</button>
               </div>
             </div>
             <div class="product-info">
@@ -564,10 +569,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         // re-wire quick add events for new nodes
         updateCartUI();
-        // wire preview buttons
+        // wire preview buttons - use productId to retrieve from Map instead of JSON.parse
         document.querySelectorAll('.product-preview').forEach(btn => btn.addEventListener('click', (e) => {
-          const p = JSON.parse(btn.getAttribute('data-product'));
-          openProductModal(p);
+          const productId = btn.getAttribute('data-product-id');
+          const p = productsMap.get(productId);
+          if (p) openProductModal(p);
         }));
       }
     } catch (err) {
