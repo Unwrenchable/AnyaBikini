@@ -4,10 +4,16 @@ const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
 
-// Store newsletter subscribers in a file relative to the server directory.
-const NEWSLETTER_JSON = process.env.NEWSLETTER_PATH || path.join(__dirname, '../server/data/newsletter.json');
+// Store newsletter subscribers in a file. Allow overriding via env var
+// (useful for serverless writable directory like /tmp).
+function getNewsletterPath() {
+  if (process.env.NEWSLETTER_PATH) return process.env.NEWSLETTER_PATH;
+  return path.join(__dirname, '../server/data/newsletter.json');
+}
+
 
 function readNewsletterDb() {
+  const NEWSLETTER_JSON = getNewsletterPath();
   try {
     if (!fs.existsSync(NEWSLETTER_JSON)) {
       const dataDir = path.dirname(NEWSLETTER_JSON);
@@ -23,9 +29,24 @@ function readNewsletterDb() {
 }
 
 function writeNewsletterDb(dbObj) {
-  const dataDir = path.dirname(NEWSLETTER_JSON);
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  fs.writeFileSync(NEWSLETTER_JSON, JSON.stringify(dbObj, null, 2));
+  let NEWSLETTER_JSON = getNewsletterPath();
+  try {
+    const dataDir = path.dirname(NEWSLETTER_JSON);
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(NEWSLETTER_JSON, JSON.stringify(dbObj, null, 2));
+  } catch (err) {
+    console.error('writeNewsletterDb error', err);
+    if (!process.env.NEWSLETTER_PATH) {
+      try {
+        const tmpPath = path.join(os.tmpdir(), 'anyabikini-newsletter.json');
+        fs.writeFileSync(tmpPath, JSON.stringify(dbObj, null, 2));
+        console.warn(`Newsletter switched to temp file ${tmpPath}`);
+        process.env.NEWSLETTER_PATH = tmpPath;
+      } catch (e2) {
+        console.error('Newsletter tmp fallback failed', e2);
+      }
+    }
+  }
 }
 
 module.exports = async function newsletter(req, res) {

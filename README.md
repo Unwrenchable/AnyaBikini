@@ -165,9 +165,13 @@ AnyaBikini/
 
    These same variable names should be set in your Vercel project as
    Environment Variables when you deploy. Be aware that Vercel's filesystem is
-   read-only/ephemeral once deployed, so any `DATABASE_PATH` pointing at a local
-   JSON file will not persist across cold starts. For production use you should
-   switch to a managed database (PostgreSQL, MongoDB, etc.).
+   read-only/ephemeral once deployed, so any `DATABASE_PATH` (or
+   `NEWSLETTER_PATH`) pointing at a local JSON file will not persist across cold
+   starts. In such cases you can set `DATABASE_PATH=/tmp/db.json` and
+   `NEWSLETTER_PATH=/tmp/newsletter.json` to allow the functions to write to the
+   temporary directory, but the data will vanish when the instance shuts down.
+   For real production, switch to a managed database service like PostgreSQL or
+   MongoDB, and send newsletters via a proper mailing list provider.
 
 4. **Start the local development server**
    - If you want to run the **Express** server locally (mimics previous setup):

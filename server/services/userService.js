@@ -6,10 +6,24 @@ const jwt = require('jsonwebtoken');
 
 // Use absolute path based on the server directory so the DB lives
 // in `/server/data/db.json` regardless of where the process is started.
-const DB_JSON = process.env.DATABASE_PATH || path.join(__dirname, '..', 'data', 'db.json');
+// compute database path dynamically so we can fall back if the
+// default location becomes unwritable (serverless environments like
+// Vercel have a read-only project root). When DATABASE_PATH is provided
+// via env it takes precedence; otherwise we use `server/data/db.json`.
+// On write failures we’ll switch to os.tmpdir().
+const os = require('os');
+
+function getDbPath() {
+  if (process.env.DATABASE_PATH) {
+    return process.env.DATABASE_PATH;
+  }
+  // default location relative to server folder
+  return path.join(__dirname, '..', 'data', 'db.json');
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 
 function readDb() {
+  const DB_JSON = getDbPath();
   try {
     if (!fs.existsSync(DB_JSON)) {
       const dataDir = path.dirname(DB_JSON);
@@ -29,11 +43,29 @@ function readDb() {
 }
 
 function writeDb(dbObj) {
+  let DB_JSON = getDbPath();
   const dataDir = path.dirname(DB_JSON);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.writeFileSync(DB_JSON, JSON.stringify(dbObj, null, 2));
+  } catch (err) {
+    console.error('writeDb error', err);
+    // if the error occurred because the default location is read-only,
+    // fall back to a temporary file and update the env var so subsequent
+    // reads/writes use the tmp path.
+    if (!process.env.DATABASE_PATH) {
+      try {
+        const tmpPath = path.join(os.tmpdir(), 'anyabikini-db.json');
+        fs.writeFileSync(tmpPath, JSON.stringify(dbObj, null, 2));
+        console.warn(`writeDb: switched to temp db at ${tmpPath}`);
+        process.env.DATABASE_PATH = tmpPath;
+      } catch (e2) {
+        console.error('writeDb fallback to tmp failed', e2);
+      }
+    }
   }
-  fs.writeFileSync(DB_JSON, JSON.stringify(dbObj, null, 2));
 }
 
 async function findUserByEmail(email) {
