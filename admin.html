@@ -92,6 +92,8 @@
         </select>
         <button id="bulk-apply" class="btn">Apply</button>
       </label>
+      <button id="export-csv" class="btn" style="margin-left:12px;">Export CSV</button>
+      <button id="print-batch" class="btn" style="margin-left:4px;">Print Pack List</button>
     </div>
     <div class="table-wrapper"><div id="orders-area">No data</div></div>
   </section>
@@ -252,6 +254,40 @@
           }
           showBanner('Bulk update complete','info');
           $qs('#btn-load').click();
+        });
+
+        // export CSV function
+        function downloadCSV(arr) {
+          if (!arr.length) return;
+          const headers = ['id','user_id','amount_cents','status','items','created_at'];
+          const lines = [headers.join(',')];
+          arr.forEach(o=>{
+            lines.push([o.id,o.user_id,o.amount_cents,o.status,`"${JSON.stringify(o.items)}"`,o.created_at].join(','));
+          });
+          const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = 'orders.csv'; document.body.appendChild(a);
+          a.click(); document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+
+        $qs('#export-csv')?.addEventListener('click', () => downloadCSV(orders));
+
+        // batch print packing list (unformatted order list) 
+        $qs('#print-batch')?.addEventListener('click', () => {
+          const sel = Array.from(document.querySelectorAll('.bulk-check:checked')).map(cb=>cb.dataset.id);
+          if (!sel.length) return alert('Select orders to print');
+          const toPrint = orders.filter(o=>sel.includes(String(o.id)));
+          const win = window.open('', '_blank');
+          let html = '<!doctype html><html><head><title>Packing List</title><link rel="stylesheet" href="/styles/main.css"></head><body><h1>Packing List</h1>';
+          toPrint.forEach(o=>{
+            html += `<h2>Order #${o.id}</h2><ul>`;
+            o.items.forEach(i=>html += `<li>${i.quantity||1}× ${i.name}</li>`);
+            html += '</ul>'; 
+          });
+          html += '</body></html>';
+          win.document.write(html); win.document.close(); win.print();
         });
         // products area
         $qs('#btn-help').addEventListener('click', () => { const h = $qs('#products-help'); h.style.display = h.style.display === 'none' ? '' : 'none'; });
