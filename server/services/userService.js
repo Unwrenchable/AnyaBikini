@@ -1,7 +1,7 @@
 // User service: handles user CRUD and authentication logic
 const fs = require('fs');
 const path = require('path');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const DB_JSON = process.env.DATABASE_PATH || './data/db.json';
@@ -10,6 +10,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 function readDb() {
   try {
     if (!fs.existsSync(DB_JSON)) {
+      const dataDir = path.dirname(DB_JSON);
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
       const initial = { users: [], orders: [], nextUserId: 1, nextOrderId: 1 };
       fs.writeFileSync(DB_JSON, JSON.stringify(initial, null, 2));
       return initial;
@@ -23,20 +27,24 @@ function readDb() {
 }
 
 function writeDb(dbObj) {
+  const dataDir = path.dirname(DB_JSON);
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
   fs.writeFileSync(DB_JSON, JSON.stringify(dbObj, null, 2));
 }
 
-function findUserByEmail(email) {
+async function findUserByEmail(email) {
   const db = readDb();
   return db.users.find(u => u.email === email);
 }
 
-function findUserById(id) {
+async function findUserById(id) {
   const db = readDb();
   return db.users.find(u => u.id === id);
 }
 
-function createUser({ email, passwordHash, name }) {
+async function createUser({ email, passwordHash, name }) {
   const db = readDb();
   if (db.users.find(u => u.email === email)) throw new Error('exists');
   const id = db.nextUserId++;
@@ -46,7 +54,7 @@ function createUser({ email, passwordHash, name }) {
   return user;
 }
 
-function updateUser(user) {
+async function updateUser(user) {
   const db = readDb();
   const idx = db.users.findIndex(u => u.id === user.id);
   if (idx === -1) return false;
