@@ -120,7 +120,9 @@ function updateOrder(order) {
 const app = express();
 
 // Security headers
+// log all incoming requests for debugging
 app.use((req, res, next) => {
+  console.log('incoming', req.method, req.url);
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
