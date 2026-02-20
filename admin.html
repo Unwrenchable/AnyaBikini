@@ -77,9 +77,21 @@
 
   <section class="admin-section">
     <h2>Orders</h2>
+    <div id="order-metrics" style="margin-bottom:12px; font-size:0.9rem; color:#555"></div>
     <div class="admin-controls" style="margin-bottom:12px;">
       <label>Status: <select id="filter-status"><option value="all">All</option><option>created</option><option>processing</option><option>shipped</option><option>completed</option><option>cancelled</option></select></label>
       <label style="margin-left:12px;">User/Order ID: <input id="filter-text" type="text" placeholder="search..." style="width:120px" /></label>
+      <label style="margin-left:24px;">Bulk update:
+        <select id="bulk-status">
+          <option value="">--status--</option>
+          <option>created</option>
+          <option>processing</option>
+          <option>shipped</option>
+          <option>completed</option>
+          <option>cancelled</option>
+        </select>
+        <button id="bulk-apply" class="btn">Apply</button>
+      </label>
     </div>
     <div class="table-wrapper"><div id="orders-area">No data</div></div>
   </section>
@@ -155,6 +167,7 @@
             const statusOpts = ['created','processing','shipped','completed','cancelled']
               .map(s => `<option value="${s}" ${ord.status===s?'selected':''}>${s}</option>`).join('');
             html += `<tr data-id="${ord.id}">` +
+              `<td><input type="checkbox" class="bulk-check" data-id="${ord.id}" /></td>` +
               `<td><a href="#" class="order-link" data-id="${ord.id}">${ord.id}</a></td>` +
               `<td>${ord.user_id}</td>` +
               `<td>${ord.amount_cents}</td>` +
@@ -206,9 +219,40 @@
             if(ord) printOrder(ord);
           }));
         }
+        // update metrics display
+        function renderMetrics(arr){
+          const total = arr.length;
+          const revenue = (arr.reduce((s,o)=>s+(o.amount_cents||0),0)/100).toFixed(2);
+          const counts = {};
+          arr.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);
+          let html = `Total orders: ${total} — Revenue: $${revenue}`;
+          Object.keys(counts).forEach(s=>{ html += ` — ${s}: ${counts[s]}`; });
+          $qs('#order-metrics').innerHTML = html;
+        }
+        renderMetrics(orders);
         // attach filter listeners
         $qs('#filter-status')?.addEventListener('change', () => $qs('#btn-load').click());
         $qs('#filter-text')?.addEventListener('input', () => $qs('#btn-load').click());
+        // bulk apply
+        $qs('#bulk-apply')?.addEventListener('click', async () => {
+          const newStatus = $qs('#bulk-status')?.value;
+          if (!newStatus) return;
+          const checks = Array.from(document.querySelectorAll('.bulk-check:checked'));
+          if (!checks.length) return alert('Select orders to update');
+          const token = $qs('#admin-token').value.trim();
+          for (const cb of checks) {
+            const id = cb.dataset.id;
+            try {
+              const resp = await fetch(apiBase + '/admin/update-order', {
+                method:'POST', headers:{'Content-Type':'application/json','X-Admin-Token':token},
+                body: JSON.stringify({ id, status: newStatus })
+              });
+              await resp.json();
+            } catch(e){ console.warn('bulk update failed', e); }
+          }
+          showBanner('Bulk update complete','info');
+          $qs('#btn-load').click();
+        });
         // products area
         $qs('#btn-help').addEventListener('click', () => { const h = $qs('#products-help'); h.style.display = h.style.display === 'none' ? '' : 'none'; });
 
