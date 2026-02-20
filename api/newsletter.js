@@ -4,7 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
 
-const NEWSLETTER_JSON = process.env.NEWSLETTER_PATH || './data/newsletter.json';
+// Store newsletter subscribers in a file relative to the server directory.
+const NEWSLETTER_JSON = process.env.NEWSLETTER_PATH || path.join(__dirname, '../server/data/newsletter.json');
 
 function readNewsletterDb() {
   try {

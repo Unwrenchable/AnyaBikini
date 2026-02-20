@@ -4,7 +4,9 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const DB_JSON = process.env.DATABASE_PATH || './data/db.json';
+// Use absolute path based on the server directory so the DB lives
+// in `/server/data/db.json` regardless of where the process is started.
+const DB_JSON = process.env.DATABASE_PATH || path.join(__dirname, '..', 'data', 'db.json');
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 
 function readDb() {
