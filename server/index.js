@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const axios = require('axios');
 
 dotenv.config();
+console.log('ADMIN_TOKEN from env =', process.env.ADMIN_TOKEN);
 
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
