@@ -61,6 +61,20 @@ function getOrders() {
   return db.orders || [];
 }
 
+function findOrderById(id) {
+  const db = readDb();
+  return db.orders.find(o => o.id === id);
+}
+
+function updateOrder(updated) {
+  const db = readDb();
+  const idx = db.orders.findIndex(o => o.id === updated.id);
+  if (idx === -1) return false;
+  db.orders[idx] = updated;
+  writeDb(db);
+  return true;
+}
+
 module.exports = {
   createOrder,
   getOrders,

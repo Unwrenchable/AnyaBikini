@@ -4,8 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Admin - AnyaBikini</title>
+  <!-- use main site stylesheet for consistent look -->
+  <link rel="stylesheet" href="/styles/main.css" />
   <style>
-    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:20px}
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:20px;background:#fafafa;}
+    h1,h2{color:var(--color-dark)}
+    .btn { cursor:pointer; }
     table{border-collapse:collapse;width:100%;margin-top:12px}
     th,td{border:1px solid #ddd;padding:8px;text-align:left}
     th{background:#f7f7f7}
@@ -46,6 +50,19 @@
       </div>
     </div>
   </div>
+
+  <!-- order detail modal -->
+  <div id="order-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-panel">
+      <h2>Order <span id="order-detail-id"></span></h2>
+      <div id="order-detail-content"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button id="order-modal-close">Close</button>
+        <button id="order-modal-ship" class="btn btn-primary">Mark Shipped</button>
+      </div>
+    </div>
+  </div>
+
   <div id="undo-history"><strong>Undo History</strong><div id="undo-list"></div></div>
 
   <h2>Users</h2>
@@ -101,14 +118,70 @@
           { header: 'Name', cell: r => r.name || '' },
           { header: 'Created', cell: r => r.created_at }
         ]);
-        $qs('#orders-area').innerHTML = renderTable(o.orders || [], [
-          { header: 'ID', cell: r => r.id },
-          { header: 'User ID', cell: r => r.user_id },
-          { header: 'Amount (cents)', cell: r => r.amount_cents },
-          { header: 'Status', cell: r => r.status },
-          { header: 'Items', cell: r => JSON.stringify(r.items) },
-          { header: 'Created', cell: r => r.created_at }
-        ]);
+        // render orders with editable status and print button
+        const orders = o.orders || [];
+        window.ordersCache = orders; // expose for printing
+        if (!orders.length) {
+          $qs('#orders-area').innerHTML = '<p>No orders</p>';
+        } else {
+          let html = '<table><thead><tr>' +
+            '<th>ID</th><th>User ID</th><th>Amount</th><th>Status</th><th>Items</th><th>Created</th><th>Actions</th>' +
+            '</tr></thead><tbody>';
+          orders.forEach(ord => {
+            const statusOpts = ['created','processing','shipped','completed','cancelled']
+              .map(s => `<option value="${s}" ${ord.status===s?'selected':''}>${s}</option>`).join('');
+            html += `<tr data-id="${ord.id}">` +
+              `<td><a href="#" class="order-link" data-id="${ord.id}">${ord.id}</a></td>` +
+              `<td>${ord.user_id}</td>` +
+              `<td>${ord.amount_cents}</td>` +
+              `<td><select class="order-status">${statusOpts}</select></td>` +
+              `<td>${JSON.stringify(ord.items)}</td>` +
+              `<td>${ord.created_at}</td>` +
+              `<td><button class="btn-print" data-id="${ord.id}">Print</button></td>` +
+              `</tr>`;
+          });
+          html += '</tbody></table>';
+          $qs('#orders-area').innerHTML = html;
+          // attach handlers
+          document.querySelectorAll('.order-status').forEach(sel => {
+            sel.addEventListener('change', async e => {
+              const tr = e.target.closest('tr');
+              const id = tr.dataset.id;
+              const status = e.target.value;
+              try {
+                const token = $qs('#admin-token').value.trim();
+                const resp = await fetch(apiBase + '/admin/update-order', {
+                  method: 'POST',
+                  headers: { 'Content-Type':'application/json', 'X-Admin-Token': token },
+                  body: JSON.stringify({ id, status })
+                });
+                const json = await resp.json();
+                if (json && json.ok) {
+                  showBanner('Status updated','info');
+                  // update cache
+                  const oidx = orders.findIndex(o=>o.id==id);
+                  if(oidx!==-1) orders[oidx].status = status;
+                } else {
+                  showBanner(json.error||'Update failed','error');
+                }
+              } catch(err){ console.error(err); showBanner('Update failed','error'); }
+            });
+          });
+          // order link click handler
+          document.querySelectorAll('.order-link').forEach(a => {
+            a.addEventListener('click', e => {
+              e.preventDefault();
+              const id = e.currentTarget.dataset.id;
+              const ord = orders.find(o=>o.id==id);
+              if (ord) showOrderModal(ord);
+            });
+          });
+          document.querySelectorAll('.btn-print').forEach(btn=> btn.addEventListener('click', e=>{
+            const id = e.currentTarget.dataset.id;
+            const ord = orders.find(o=>o.id==id);
+            if(ord) printOrder(ord);
+          }));
+        }
         // products area
         $qs('#btn-help').addEventListener('click', () => { const h = $qs('#products-help'); h.style.display = h.style.display === 'none' ? '' : 'none'; });
 
@@ -240,6 +313,53 @@
         }
 
         function showBanner(msg, type){ const b = $qs('#global-banner'); b.className = `banner ${type==='error'?'error':'info'}`; b.textContent = msg; b.style.display = 'block'; setTimeout(()=>{ b.style.display = 'none'; }, 6000); }
+
+        function printOrder(ord) {
+          const win = window.open('', '_blank');
+          if (!win) return;
+          const itemsHtml = ord.items.map(i=>`<tr><td>${i.name}</td><td>${i.quantity||1}</td><td>$${(i.price||0).toFixed(2)}</td></tr>`).join('');
+          const total = ((ord.amount_cents||0)/100).toFixed(2);
+          win.document.write(`<!doctype html><html><head><title>Order ${ord.id}</title><link rel="stylesheet" href="/styles/main.css"><style>body{padding:20px;font-family:system-ui,Segoe UI,Roboto,Arial;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:6px;text-align:left;}</style></head><body><h1>Order #${ord.id}</h1><p>User ID: ${ord.user_id}</p><p>Status: ${ord.status}</p><p>Created: ${ord.created_at}</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead><tbody>${itemsHtml}</tbody></table><p><strong>Total: $${total}</strong></p></body></html>`);
+          win.document.close();
+          win.focus();
+          win.print();
+        }
+
+        // order detail modal helpers
+        function showOrderModal(ord) {
+          $qs('#order-detail-id').textContent = ord.id;
+          // build content
+          let html = `<p>User ID: ${ord.user_id}</p><p>Status: ${ord.status}</p><p>Created: ${ord.created_at}</p>`;
+          html += '<table style="width:100%;border-collapse:collapse;margin-top:8px"><thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead><tbody>';
+          ord.items.forEach(i=> {
+            html += `<tr><td>${i.name}</td><td>${i.quantity||1}</td><td>$${(i.price||0).toFixed(2)}</td></tr>`;
+          });
+          html += `</tbody></table><p><strong>Total: $${((ord.amount_cents||0)/100).toFixed(2)}</strong></p>`;
+          $qs('#order-detail-content').innerHTML = html;
+          $qs('#order-modal-backdrop').style.display = 'flex';
+          $qs('#order-modal-ship').onclick = async () => {
+            try {
+              const token = $qs('#admin-token').value.trim();
+              const resp = await fetch(apiBase + '/admin/update-order', {
+                method: 'POST',
+                headers: { 'Content-Type':'application/json', 'X-Admin-Token': token },
+                body: JSON.stringify({ id: ord.id, status: 'shipped' })
+              });
+              const json = await resp.json();
+              if (json && json.ok) {
+                showBanner('Order marked shipped','info');
+                ord.status = 'shipped';
+                $qs('#order-detail-content').querySelector('p:nth-child(2)').textContent = `Status: shipped`;
+                // update row status
+                const sel = document.querySelector(`tr[data-id="${ord.id}"] .order-status`);
+                if (sel) sel.value = 'shipped';
+              } else {
+                showBanner(json.error||'Update failed','error');
+              }
+            } catch(e) { console.error(e); showBanner('Update failed','error'); }
+          };
+        }
+        $qs('#order-modal-close').addEventListener('click', () => { $qs('#order-modal-backdrop').style.display='none'; });
 
         // Change tracking helpers
         function markRowDirty(tr){ if(!tr) return; tr.classList.add('row-dirty'); }

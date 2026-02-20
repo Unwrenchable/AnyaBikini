@@ -102,6 +102,19 @@ function createOrder({ user_id, items, amount_cents }) {
   return order;
 }
 
+function findOrderById(id) {
+  const db = readDb();
+  return db.orders.find(o => o.id === id);
+}
+
+function updateOrder(order) {
+  const db = readDb();
+  const idx = db.orders.findIndex(o => o.id === order.id);
+  if (idx === -1) return false;
+  db.orders[idx] = order;
+  writeDb(db);
+  return true;
+}
 
 const app = express();
 
@@ -442,11 +455,30 @@ function escapeHtml(s){
 }
 
 // Create order record
-app.post('/api/create-order', authMiddleware, (req, res) => {
+app.post('/api/create-order', authMiddleware, async (req, res) => {
   const { items, amount_cents } = req.body;
   if (!items || !Array.isArray(items)) return res.status(400).json({ error: 'Invalid items' });
   try {
     const order = createOrder({ user_id: req.user.id, items, amount_cents });
+
+    // send receipt email
+    try {
+      const user = await findUserById(req.user.id);
+      if (user && user.email) {
+        const lines = items.map(i => `${i.quantity || 1}× ${i.name} @ $${(i.price||0).toFixed(2)}`).join('\n');
+        const htmlLines = items.map(i => `<li>${i.quantity||1}× ${escapeHtml(i.name)} @ $${(i.price||0).toFixed(2)}</li>`).join('');
+        const total = ((amount_cents||0)/100).toFixed(2);
+        await sendEmail({
+          to: user.email,
+          subject: `Your order #${order.id} receipt`,
+          text: `Thank you for your order!\n\n${lines}\n\nTotal: $${total}`,
+          html: `<p>Thank you for your order!</p><ul>${htmlLines}</ul><p><strong>Total: $${total}</strong></p>`
+        });
+      }
+    } catch (e) {
+      console.warn('receipt email failed', e && e.message);
+    }
+
     res.json({ ok: true, orderId: order.id });
   } catch (err) {
     console.error(err);
@@ -493,6 +525,35 @@ app.post('/api/create-payment-intent', async (req, res) => {
     console.error('PaymentIntent error', err);
     res.status(500).json({ error: 'Failed to create payment intent' });
   }
+});
+
+// Admin route: update order status and notify user
+app.post('/api/admin/update-order', adminAuth, async (req, res) => {
+  const { id, status } = req.body || {};
+  if (typeof id === 'undefined' || typeof status === 'undefined') {
+    return res.status(400).json({ error: 'id and status required' });
+  }
+  const order = findOrderById(Number(id));
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  order.status = status;
+  if (!updateOrder(order)) return res.status(500).json({ error: 'Could not update order' });
+
+  // send status email
+  try {
+    const user = await findUserById(order.user_id);
+    if (user && user.email) {
+      await sendEmail({
+        to: user.email,
+        subject: `Order #${order.id} status updated`,
+        text: `Your order #${order.id} is now: ${status}`,
+        html: `<p>Your order <strong>#${order.id}</strong> is now: <em>${status}</em></p>`
+      });
+    }
+  } catch (e) {
+    console.warn('status email failed', e && e.message);
+  }
+
+  res.json({ ok: true, order });
 });
 
 // Static file serving for front-end if needed
