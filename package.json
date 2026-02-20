@@ -19,7 +19,7 @@
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "cookie-parser": "^1.4.6",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^7.0.11",
     "axios": "^1.6.2",
     "stripe": "^14.7.0"
   },
