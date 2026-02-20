@@ -6,6 +6,7 @@
   <title>Admin - AnyaBikini</title>
   <!-- use main site stylesheet for consistent look -->
   <link rel="stylesheet" href="/styles/main.css" />
+  <link rel="stylesheet" href="/styles/admin.css" />
   <style>
     body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:20px;background:#fafafa;}
     h1,h2{color:var(--color-dark)}
@@ -29,10 +30,14 @@
     #undo-history ul { margin:6px 0 0 16px }
   </style>
 </head>
-<body>
-  <h1>Admin</h1>
+<body class="admin-page">
+  <div class="admin-container">
+  <header class="admin-header">
+    <h1>Admin Dashboard</h1>
+    <p class="small">Manage users, orders &amp; products</p>
+  </header>
   <p>Enter admin token (from <code>server/.env</code>) and click Load.</p>
-  <div class="controls">
+  <div class="controls admin-controls">
     <input id="admin-token" placeholder="Admin token" style="width:60%" />
     <button id="btn-load">Load Data</button>
     <button id="btn-undo" title="Undo last save" style="margin-left:8px;display:none">Undo Save</button>
@@ -65,13 +70,18 @@
 
   <div id="undo-history"><strong>Undo History</strong><div id="undo-list"></div></div>
 
-  <h2>Users</h2>
-  <div id="users-area">No data</div>
+  <section class="admin-section">
+    <h2>Users</h2>
+    <div id="users-area">No data</div>
+  </section>
 
-  <h2>Orders</h2>
-  <div id="orders-area">No data</div>
+  <section class="admin-section">
+    <h2>Orders</h2>
+    <div class="table-wrapper"><div id="orders-area">No data</div></div>
+  </section>
 
-  <h2>Products</h2>
+  <section class="admin-section">
+    <h2>Products</h2>
   <p>Load, edit, and save products (from Instagram sync). Use <strong>Preview</strong> to open the SEO product page, and <strong>Undo Save</strong> to restore the previous server state if needed.</p>
   <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
     <button id="btn-load-products">Load Products</button>
@@ -92,6 +102,7 @@
   <div id="products-area">No data</div>
 
   <script>
+    // ensure status badge classes used when rendering order table
     const apiBase = '/api';
     let lastBackupProducts = null;
     let lastBackupTime = null;
@@ -134,7 +145,7 @@
               `<td><a href="#" class="order-link" data-id="${ord.id}">${ord.id}</a></td>` +
               `<td>${ord.user_id}</td>` +
               `<td>${ord.amount_cents}</td>` +
-              `<td><select class="order-status">${statusOpts}</select></td>` +
+              `<td><span class="status-badge status-${ord.status}">${ord.status}</span> <select class="order-status">${statusOpts}</select></td>` +
               `<td>${JSON.stringify(ord.items)}</td>` +
               `<td>${ord.created_at}</td>` +
               `<td><button class="btn-print" data-id="${ord.id}">Print</button></td>` +
@@ -360,6 +371,15 @@
           };
         }
         $qs('#order-modal-close').addEventListener('click', () => { $qs('#order-modal-backdrop').style.display='none'; });
+        // update badge when status dropdown changes
+        document.addEventListener('change', (e)=>{
+          if(e.target.matches('.order-status')){
+            const sel = e.target;
+            const tr = sel.closest('tr');
+            const badge = tr.querySelector('.status-badge');
+            if(badge) badge.className = `status-badge status-${sel.value}`;
+          }
+        });
 
         // Change tracking helpers
         function markRowDirty(tr){ if(!tr) return; tr.classList.add('row-dirty'); }
