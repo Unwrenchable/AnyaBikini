@@ -3,6 +3,31 @@
 // =========================================
 
 document.addEventListener('DOMContentLoaded', () => {
+  // --- Global Error Banner ---
+  function showGlobalError(msg) {
+    const banner = document.getElementById('global-error-banner');
+    const message = document.getElementById('global-error-message');
+    if (banner && message) {
+      message.textContent = msg;
+      banner.style.display = 'block';
+    }
+  }
+  function hideGlobalError() {
+    const banner = document.getElementById('global-error-banner');
+    if (banner) banner.style.display = 'none';
+  }
+  const closeBtn = document.getElementById('global-error-close');
+  if (closeBtn) closeBtn.onclick = hideGlobalError;
+
+  // Patch window.onerror and unhandledrejection for dev debugging
+  window.onerror = function(msg, src, line, col, err) {
+    showGlobalError(`JS Error: ${msg} at ${src}:${line}:${col}`);
+    return false;
+  };
+  window.onunhandledrejection = function(e) {
+    showGlobalError(`Promise Error: ${e.reason}`);
+    return false;
+  };
 
   // --- Sticky Header ---
   const header = document.querySelector('.site-header');

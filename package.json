@@ -1,0 +1,23 @@
+{
+  "name": "anya-bikini",
+  "version": "1.0.0",
+  "description": "Anya Bikini — Handcrafted swimwear e-commerce site.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js",
+    "build": "echo 'No build step required'",
+    "deploy": "vercel --prod"
+  },
+  "keywords": ["bikini", "swimwear", "ecommerce", "vercel"],
+  "author": "Anya Bikini Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "vercel": "^30.0.0"
+  }
+}
