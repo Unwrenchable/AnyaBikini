@@ -203,6 +203,8 @@ document.addEventListener('DOMContentLoaded', () => {
       toast.classList.remove('show');
     }, 3200);
   }
+  // Make showToast globally accessible
+  window.showToast = showToast;
 
   // --- Scroll Reveal Animation ---
   if ('IntersectionObserver' in window) {
@@ -336,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     } catch (err) {
-      console.warn('Instagram load failed', err);
+      console.warn('Instagram load failed', err.message || err);
     }
   }
 
