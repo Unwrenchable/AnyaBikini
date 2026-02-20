@@ -1,0 +1,10 @@
+// vercel.json
+{
+  "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/robots.txt", "destination": "/api/robots" },
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
+}
