@@ -1716,6 +1716,20 @@ section {
   font-size: 0.9rem;
 }
 
+.cart-remove {
+  background: none;
+  border: none;
+  color: var(--color-danger, #c0392b);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+.cart-remove:hover {
+  opacity: 1;
+}
+
 .cart-summary {
   border-top: 2px solid var(--color-dark);
   padding-top: 1.5rem;

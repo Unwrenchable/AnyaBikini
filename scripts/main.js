@@ -423,6 +423,16 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`✓ ${item.name} added to cart`);
   }
 
+  function removeFromCart(name) {
+    const cart = getCart();
+    const idx = cart.findIndex(i => i.name === name);
+    if (idx !== -1) {
+      cart.splice(idx, 1);
+      saveCart(cart);
+      showToast(`Removed ${name} from cart`);
+    }
+  }
+
   function updateCartUI() {
     const cart = getCart();
     const count = cart.reduce((s, i) => s + (i.quantity || 0), 0);
@@ -433,7 +443,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let total = 0;
     cart.forEach(i => {
       const row = document.createElement('div'); row.className = 'cart-item';
-      row.innerHTML = `<div class="cart-item-name">${i.name}</div><div class="cart-item-meta">${i.quantity} × $${(i.price||0).toFixed(2)}</div>`;
+      row.innerHTML = `
+        <div class="cart-item-name">${i.name}</div>
+        <div class="cart-item-meta">${i.quantity} × $${(i.price||0).toFixed(2)}</div>
+        <button class="cart-remove" data-name="${i.name}" aria-label="Remove ${i.name}">&times;</button>
+      `;
       itemsContainer.appendChild(row);
       total += (i.price||0) * (i.quantity||1);
     });
@@ -465,6 +479,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cart icon click
   const cartBtn = document.querySelector('.nav-actions .nav-icon-btn[aria-label="Shopping cart"]');
   if (cartBtn) cartBtn.addEventListener('click', () => toggleCart(true));
+
+  // clicking remove buttons inside cart
+  document.addEventListener('click', (e) => {
+    if (e.target.matches('.cart-remove')) {
+      const name = e.target.getAttribute('data-name');
+      if (name) removeFromCart(name);
+    }
+  });
 
   // Checkout flow: if not signed in, prompt auth; otherwise create Stripe checkout session
   $qs('#btn-checkout')?.addEventListener('click', async () => {
