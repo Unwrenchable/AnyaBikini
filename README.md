@@ -157,6 +157,9 @@ AnyaBikini/
 
 3. **Configure environment variables**
 
+   The `.env` file is used by the backend/serverless functions—not by the static
+   front-end code. Front-end settings (Stripe publishable key, API base path,
+   etc.) are provided via meta tags or served by an API endpoint.
    Copy `server/.env.example` to a top-level `.env` file and fill in values:
    ```bash
    cp server/.env.example .env
