@@ -530,6 +530,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
 
 // Admin route: update order status and notify user
 app.post('/api/admin/update-order', adminAuth, async (req, res) => {
+  console.log('update-order called, body=', req.body);
   const { id, status, tracking } = req.body || {};
   if (typeof id === 'undefined' || typeof status === 'undefined') {
     return res.status(400).json({ error: 'id and status required' });
