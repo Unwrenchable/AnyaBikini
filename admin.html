@@ -61,6 +61,9 @@
     <div class="modal-panel">
       <h2>Order <span id="order-detail-id"></span></h2>
       <div id="order-detail-content"></div>
+      <div style="margin-top:12px">
+        <label>Tracking #: <input id="order-tracking" type="text" style="width:200px" /></label>
+      </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
         <button id="order-modal-close">Close</button>
         <button id="order-modal-ship" class="btn btn-primary">Mark Shipped</button>
@@ -444,20 +447,23 @@
           html += `</tbody></table><p><strong>Total: $${((ord.amount_cents||0)/100).toFixed(2)}</strong></p>`;
           $qs('#order-detail-content').innerHTML = html;
           $qs('#order-modal-backdrop').style.display = 'flex';
+          $qs('#order-tracking').value = ord.tracking || '';
           $qs('#order-modal-ship').onclick = async () => {
+            const trackingVal = $qs('#order-tracking').value.trim();
             try {
               const token = $qs('#admin-token').value.trim();
               const resp = await fetch(apiBase + '/admin/update-order', {
                 method: 'POST',
                 headers: { 'Content-Type':'application/json', 'X-Admin-Token': token },
-                body: JSON.stringify({ id: ord.id, status: 'shipped' })
+                body: JSON.stringify({ id: ord.id, status: 'shipped', tracking: trackingVal || undefined })
               });
               const json = await resp.json();
               if (json && json.ok) {
                 showBanner('Order marked shipped','info');
                 ord.status = 'shipped';
+                ord.tracking = trackingVal || ord.tracking;
                 $qs('#order-detail-content').querySelector('p:nth-child(2)').textContent = `Status: shipped`;
-                // update row status
+                // update row status badge
                 const sel = document.querySelector(`tr[data-id="${ord.id}"] .order-status`);
                 if (sel) sel.value = 'shipped';
               } else {

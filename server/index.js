@@ -529,24 +529,33 @@ app.post('/api/create-payment-intent', async (req, res) => {
 
 // Admin route: update order status and notify user
 app.post('/api/admin/update-order', adminAuth, async (req, res) => {
-  const { id, status } = req.body || {};
+  const { id, status, tracking } = req.body || {};
   if (typeof id === 'undefined' || typeof status === 'undefined') {
     return res.status(400).json({ error: 'id and status required' });
   }
   const order = findOrderById(Number(id));
   if (!order) return res.status(404).json({ error: 'Order not found' });
   order.status = status;
+  if (tracking) {
+    order.tracking = tracking;
+  }
   if (!updateOrder(order)) return res.status(500).json({ error: 'Could not update order' });
 
   // send status email
   try {
     const user = await findUserById(order.user_id);
     if (user && user.email) {
+      let text = `Your order #${order.id} is now: ${status}`;
+      let html = `<p>Your order <strong>#${order.id}</strong> is now: <em>${status}</em></p>`;
+      if (status === 'shipped' && order.tracking) {
+        text += `\n\nTracking number: ${order.tracking}`;
+        html += `<p>Tracking number: <strong>${escapeHtml(order.tracking)}</strong></p>`;
+      }
       await sendEmail({
         to: user.email,
         subject: `Order #${order.id} status updated`,
-        text: `Your order #${order.id} is now: ${status}`,
-        html: `<p>Your order <strong>#${order.id}</strong> is now: <em>${status}</em></p>`
+        text,
+        html
       });
     }
   } catch (e) {
@@ -556,8 +565,8 @@ app.post('/api/admin/update-order', adminAuth, async (req, res) => {
   res.json({ ok: true, order });
 });
 
-// Static file serving for front-end if needed
-app.use(express.static(path.join(__dirname, '..')));
+// Static file serving for front-end - serve only the public directory
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
