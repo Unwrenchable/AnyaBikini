@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - AnyaBikini</title>
+  <!-- use main site stylesheet for consistent look -->
+  <link rel="stylesheet" href="/styles/main.css" />
+  <link rel="stylesheet" href="/styles/admin.css" />
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:20px;background:#fafafa;}
+    h1,h2{color:var(--color-dark)}
+    .btn { cursor:pointer; }
+    table{border-collapse:collapse;width:100%;margin-top:12px}
+    th,td{border:1px solid #ddd;padding:8px;text-align:left}
+    th{background:#f7f7f7}
+    .controls{display:flex;gap:8px}
+    .img-thumb{width:80px;height:60px;object-fit:cover;border:1px solid #ccc}
+    tr.dragging{opacity:0.4}
+    tr.drop-target{outline:2px dashed #888}
+    input:focus, button:focus { outline: 3px solid #8ab4ff; outline-offset: 2px; }
+    /* Simple modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center}
+    .modal-panel{background:white;padding:18px;border-radius:8px;max-width:520px;width:90%;box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+    .banner {padding:10px 12px;border-radius:6px;margin-bottom:10px;display:none}
+    .banner.info{background:#e8f4ff;color:#034ea2}
+    .banner.error{background:#fff0f0;color:#8a1f2d}
+    .row-dirty { outline: 2px dashed #f5a623; background: #fff8f0 }
+    #undo-history { display:none; margin-bottom:8px; }
+    #undo-history ul { margin:6px 0 0 16px }
+  </style>
+</head>
+<body class="admin-page">
+  <div class="admin-container">
+  <header class="admin-header">
+    <h1>Admin Dashboard</h1>
+    <p class="small">Manage users, orders &amp; products</p>
+  </header>
+  <p>Enter admin token (from <code>server/.env</code>) and click Load.</p>
+  <div class="controls admin-controls">
+    <input id="admin-token" placeholder="Admin token" style="width:60%" />
+    <button id="btn-load">Load Data</button>
+    <button id="btn-undo" title="Undo last save" style="margin-left:8px;display:none">Undo Save</button>
+  </div>
+
+  <div id="global-banner" class="banner info" role="status" aria-live="polite"></div>
+
+  <!-- Confirmation modal -->
+  <div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-panel">
+      <div id="modal-message"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button id="modal-cancel">Cancel</button>
+        <button id="modal-confirm" class="btn btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- order detail modal -->
+  <div id="order-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-panel">
+      <h2>Order <span id="order-detail-id"></span></h2>
+      <div id="order-detail-content"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button id="order-modal-close">Close</button>
+        <button id="order-modal-ship" class="btn btn-primary">Mark Shipped</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="undo-history"><strong>Undo History</strong><div id="undo-list"></div></div>
+
+  <section class="admin-section">
+    <h2>Users</h2>
+    <div id="users-area">No data</div>
+  </section>
+
+  <section class="admin-section">
+    <h2>Orders</h2>
+    <div class="admin-controls" style="margin-bottom:12px;">
+      <label>Status: <select id="filter-status"><option value="all">All</option><option>created</option><option>processing</option><option>shipped</option><option>completed</option><option>cancelled</option></select></label>
+      <label style="margin-left:12px;">User/Order ID: <input id="filter-text" type="text" placeholder="search..." style="width:120px" /></label>
+    </div>
+    <div class="table-wrapper"><div id="orders-area">No data</div></div>
+  </section>
+
+  <section class="admin-section">
+    <h2>Products</h2>
+  <p>Load, edit, and save products (from Instagram sync). Use <strong>Preview</strong> to open the SEO product page, and <strong>Undo Save</strong> to restore the previous server state if needed.</p>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+    <button id="btn-load-products">Load Products</button>
+    <button id="btn-add-product">Add Product</button>
+    <button id="btn-save-products">Save Products</button>
+    <button id="btn-help" title="Show tips">Help</button>
+    <span style="color:#666;font-size:0.9rem">(edits will overwrite <code>server/data/products.json</code>)</span>
+  </div>
+  <div id="products-help" style="background:#f7f7f7;padding:8px;border-radius:6px;display:none;margin-bottom:8px">
+    <strong>Tips:</strong>
+    <ul style="margin:6px 0 0 18px;line-height:1.4">
+      <li>Price should be a number (e.g. <em>49.99</em>).</li>
+      <li>Image and Permalink should be full URLs (start with <code>https://</code>).</li>
+      <li>Use <strong>Preview</strong> to check the public product page before publishing.</li>
+    </ul>
+  </div>
+  <div id="products-errors" style="color:#b00020;margin-bottom:8px"></div>
+  <div id="products-area">No data</div>
+
+  <script>
+    // ensure status badge classes used when rendering order table
+    const apiBase = '/api';
+    let lastBackupProducts = null;
+    let lastBackupTime = null;
+    const undoStack = []; // multi-level undo - stores {products, time}
+    const UNDO_LIMIT = 5;
+    function $qs(s){return document.querySelector(s)}
+    function renderTable(data, columns){
+      if(!data || !data.length) return '<p>No records</p>';
+      let html = '<table><thead><tr>' + columns.map(c=>`<th>${c.header}</th>`).join('') + '</tr></thead><tbody>';
+      data.forEach(row=>{ html += '<tr>' + columns.map(c=>`<td>${c.cell(row)}</td>`).join('') + '</tr>'; });
+      html += '</tbody></table>';
+      return html;
+    }
+    async function loadAdmin(){
+      const token = $qs('#admin-token').value.trim();
+      if(!token) return alert('Enter admin token');
+      const headers = { 'X-Admin-Token': token };
+      try{
+        const u = await fetch(apiBase + '/admin/users', { headers }).then(r=>r.json());
+        const o = await fetch(apiBase + '/admin/orders', { headers }).then(r=>r.json());
+        $qs('#users-area').innerHTML = renderTable(u.users || [], [
+          { header: 'ID', cell: r => r.id },
+          { header: 'Email', cell: r => r.email },
+          { header: 'Name', cell: r => r.name || '' },
+          { header: 'Created', cell: r => r.created_at }
+        ]);
+        // render orders with editable status and print button
+        let orders = o.orders || [];
+        window.ordersCache = orders; // expose for printing
+        // apply filters if set
+        const statusFilter = $qs('#filter-status')?.value || 'all';
+        const textFilter = $qs('#filter-text')?.value.trim().toLowerCase();
+        if (statusFilter && statusFilter !== 'all') {
+          orders = orders.filter(r=>r.status === statusFilter);
+        }
+        if (textFilter) {
+          orders = orders.filter(r=> String(r.user_id).includes(textFilter) || String(r.id).includes(textFilter));
+        }
+        if (!orders.length) {
+          $qs('#orders-area').innerHTML = '<p>No orders</p>';
+        } else {
+          let html = '<table><thead><tr>' +
+            '<th>ID</th><th>User ID</th><th>Amount</th><th>Status</th><th>Items</th><th>Created</th><th>Actions</th>' +
+            '</tr></thead><tbody>';
+          orders.forEach(ord => {
+            const statusOpts = ['created','processing','shipped','completed','cancelled']
+              .map(s => `<option value="${s}" ${ord.status===s?'selected':''}>${s}</option>`).join('');
+            html += `<tr data-id="${ord.id}">` +
+              `<td><a href="#" class="order-link" data-id="${ord.id}">${ord.id}</a></td>` +
+              `<td>${ord.user_id}</td>` +
+              `<td>${ord.amount_cents}</td>` +
+              `<td><span class="status-badge status-${ord.status}">${ord.status}</span> <select class="order-status">${statusOpts}</select></td>` +
+              `<td>${JSON.stringify(ord.items)}</td>` +
+              `<td>${ord.created_at}</td>` +
+              `<td><button class="btn-print" data-id="${ord.id}">Print</button></td>` +
+              `</tr>`;
+          });
+          html += '</tbody></table>';
+          $qs('#orders-area').innerHTML = html;
+          // attach handlers
+          document.querySelectorAll('.order-status').forEach(sel => {
+            sel.addEventListener('change', async e => {
+              const tr = e.target.closest('tr');
+              const id = tr.dataset.id;
+              const status = e.target.value;
+              try {
+                const token = $qs('#admin-token').value.trim();
+                const resp = await fetch(apiBase + '/admin/update-order', {
+                  method: 'POST',
+                  headers: { 'Content-Type':'application/json', 'X-Admin-Token': token },
+                  body: JSON.stringify({ id, status })
+                });
+                const json = await resp.json();
+                if (json && json.ok) {
+                  showBanner('Status updated','info');
+                  // update cache
+                  const oidx = orders.findIndex(o=>o.id==id);
+                  if(oidx!==-1) orders[oidx].status = status;
+                } else {
+                  showBanner(json.error||'Update failed','error');
+                }
+              } catch(err){ console.error(err); showBanner('Update failed','error'); }
+            });
+          });
+          // order link click handler
+          document.querySelectorAll('.order-link').forEach(a => {
+            a.addEventListener('click', e => {
+              e.preventDefault();
+              const id = e.currentTarget.dataset.id;
+              const ord = orders.find(o=>o.id==id);
+              if (ord) showOrderModal(ord);
+            });
+          });
+          document.querySelectorAll('.btn-print').forEach(btn=> btn.addEventListener('click', e=>{
+            const id = e.currentTarget.dataset.id;
+            const ord = orders.find(o=>o.id==id);
+            if(ord) printOrder(ord);
+          }));
+        }
+        // attach filter listeners
+        $qs('#filter-status')?.addEventListener('change', () => $qs('#btn-load').click());
+        $qs('#filter-text')?.addEventListener('input', () => $qs('#btn-load').click());
+        // products area
+        $qs('#btn-help').addEventListener('click', () => { const h = $qs('#products-help'); h.style.display = h.style.display === 'none' ? '' : 'none'; });
+
+        $qs('#btn-undo').addEventListener('click', async () => {
+          if (!undoStack.length) return alert('No undo states available');
+          showModal('Restore the last saved product state? This will overwrite current products.', async () => {
+            const entry = undoStack.pop();
+            const token = $qs('#admin-token').value.trim(); if (!token) return showBanner('Enter admin token to undo','error');
+            try {
+              const resp = await fetch(apiBase + '/admin/save-products', { method: 'POST', headers: { 'Content-Type':'application/json', 'X-Admin-Token': token }, body: JSON.stringify({ products: entry.products }) });
+              const json = await resp.json();
+              if (json && json.ok) {
+                showBanner('Undo successful','info');
+                $qs('#btn-undo').style.display = undoStack.length ? 'inline-block' : 'none';
+                $qs('#btn-load-products').click();
+              } else {
+                showBanner(json.error || 'Undo failed','error');
+              }
+            } catch (e) { console.error(e); showBanner('Undo failed','error'); }
+          });
+        });
+
+        $qs('#btn-load-products').addEventListener('click', async () => {
+          try {
+            const p = await fetch(apiBase + '/products').then(r => r.json());
+            const products = p.products || [];
+            // keep a local snapshot of what the server currently has
+            lastBackupProducts = JSON.parse(JSON.stringify(products));
+            if (!products.length) { $qs('#products-area').innerHTML = '<p>No products</p>'; return; }
+            const html = ['<table><thead><tr><th></th><th>ID</th><th>Name</th><th>Price</th><th>Image</th><th>Permalink</th><th>Published</th><th>Description</th><th>Preview</th><th>Actions</th></tr></thead><tbody>'];
+            products.forEach((prod, idx) => {
+              html.push(`<tr draggable="true" data-idx="${idx}"><td style="width:40px;cursor:grab">☰</td><td>${prod.id||''}</td><td><input class="prod-name" value="${(prod.name||'').replace(/"/g,'&quot;')}"></td><td><input class="prod-price" value="${prod.price||0}"></td><td><div style="display:flex;gap:8px;align-items:center"><img class="img-thumb" src="${(prod.image||'').replace(/"/g,'&quot;')}" onerror="this.style.display='none'" /><input class="prod-image" value="${(prod.image||'').replace(/"/g,'&quot;')}"></div></td><td><input class="prod-permalink" value="${(prod.permalink||'').replace(/"/g,'&quot;')}"></td><td><input type="checkbox" class="prod-published" ${prod.published !== false ? 'checked' : ''}></td><td><input class="prod-desc" value="${(prod.description||'').replace(/"/g,'&quot;')}" style="width:220px"></td><td><button class="btn-preview" data-id="${(prod.id||'')}">Preview</button></td><td><button class="btn-move-up" title="Move up">↑</button><button class="btn-move-down" title="Move down">↓</button> <button class="btn-remove-prod">Remove</button></td></tr>`);
+            });
+            html.push('</tbody></table>');
+            $qs('#products-area').innerHTML = html.join('');
+            // wire remove buttons
+            document.querySelectorAll('.btn-remove-prod').forEach(btn => btn.addEventListener('click', (e) => { e.target.closest('tr').remove(); }));
+            // wire image input -> preview
+            document.querySelectorAll('.prod-image').forEach(input => {
+              input.addEventListener('input', (e) => {
+                const tr = e.target.closest('tr');
+                const img = tr.querySelector('.img-thumb');
+                if (!img) return;
+                const v = e.target.value.trim();
+                if (!v) { img.style.display = 'none'; img.src = ''; markRowDirty(tr); return; }
+                img.style.display = ''; img.src = v; markRowDirty(tr);
+              });
+            });
+            // wire generic inputs to mark dirty and enable save
+            document.querySelectorAll('#products-area tbody tr input').forEach(inp => {
+              inp.addEventListener('input', (e) => { const tr = e.target.closest('tr'); markRowDirty(tr); checkFormDirty(); });
+            });
+            // enable drag & drop reordering
+            let dragSrc = null;
+            function handleDragStart(e){ dragSrc = this; this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+            function handleDragOver(e){ e.preventDefault(); e.dataTransfer.dropEffect = 'move'; this.classList.add('drop-target'); }
+            function handleDragLeave(e){ this.classList.remove('drop-target'); }
+            function handleDrop(e){ e.stopPropagation(); this.classList.remove('drop-target'); if (dragSrc === this) return; const tbody = this.parentNode; const nodes = Array.from(tbody.children); const srcIdx = nodes.indexOf(dragSrc); const dstIdx = nodes.indexOf(this); if (srcIdx < dstIdx) tbody.insertBefore(dragSrc, this.nextSibling); else tbody.insertBefore(dragSrc, this); }
+            function handleDragEnd(e){ this.classList.remove('dragging'); document.querySelectorAll('tr.drop-target').forEach(r=>r.classList.remove('drop-target')); }
+            document.querySelectorAll('#products-area tbody tr').forEach(row => {
+              row.addEventListener('dragstart', handleDragStart);
+              row.addEventListener('dragover', handleDragOver);
+              row.addEventListener('dragleave', handleDragLeave);
+              row.addEventListener('drop', handleDrop);
+              row.addEventListener('dragend', handleDragEnd);
+            });
+            // wire preview and move buttons
+            document.querySelectorAll('.btn-preview').forEach(btn => btn.addEventListener('click', (e) => {
+              const id = e.currentTarget.dataset.id;
+              if (!id) return alert('Missing product id');
+              const url = `/product/${encodeURIComponent(id)}`;
+              window.open(url, '_blank');
+            }));
+            function moveRowUp(row){ const prev = row.previousElementSibling; if(prev) row.parentNode.insertBefore(row, prev); row.querySelector('.prod-name')?.focus(); }
+            function moveRowDown(row){ const next = row.nextElementSibling; if(next) row.parentNode.insertBefore(next, row); row.querySelector('.prod-name')?.focus(); }
+            document.querySelectorAll('.btn-move-up').forEach(btn => btn.addEventListener('click', (e) => { const tr = e.currentTarget.closest('tr'); if(tr) moveRowUp(tr); }));
+            document.querySelectorAll('.btn-move-down').forEach(btn => btn.addEventListener('click', (e) => { const tr = e.currentTarget.closest('tr'); if(tr) moveRowDown(tr); }));
+            // keyboard: Alt+ArrowUp / Alt+ArrowDown to move focused row
+            document.addEventListener('keydown', (e) => {
+              if (!(e.altKey || e.metaKey)) return;
+              if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+              const el = document.activeElement;
+              if (!el) return;
+              const tr = el.closest && el.closest('tr');
+              if (!tr) return;
+              if (e.key === 'ArrowUp') moveRowUp(tr);
+              else moveRowDown(tr);
+              e.preventDefault();
+            });
+            // add product handler
+            $qs('#btn-add-product').onclick = () => {
+              const tbody = $qs('#products-area table tbody');
+              const idx = tbody.children.length;
+              const row = document.createElement('tr');
+              row.setAttribute('draggable','true');
+              row.innerHTML = `<td style="width:40px;cursor:grab">☰</td><td>new_${Date.now()}</td><td><input class="prod-name" value="New Product" tabindex="0"></td><td><input class="prod-price" value="0" tabindex="0"></td><td><div style="display:flex;gap:8px;align-items:center"><img class="img-thumb" style="display:none" /><input class="prod-image" value="" tabindex="0"></div></td><td><input class="prod-permalink" value="" tabindex="0"></td><td><input type="checkbox" class="prod-published" checked tabindex="0"></td><td><input class="prod-desc" value="" tabindex="0"></td><td><button class="btn-preview" data-id="new_${Date.now()}" tabindex="0">Preview</button></td><td><button class="btn-move-up" title="Move up" tabindex="0">↑</button><button class="btn-move-down" title="Move down" tabindex="0">↓</button> <button class="btn-remove-prod">Remove</button></td>`;
+              tbody.appendChild(row);
+              row.querySelector('.btn-remove-prod').addEventListener('click', () => row.remove());
+              // mark new row dirty and attach change handlers
+              markRowDirty(row);
+              row.querySelectorAll('input').forEach(i => i.addEventListener('input', () => { markRowDirty(row); checkFormDirty(); }));
+              // wire image input preview for the new row
+              const imgInput = row.querySelector('.prod-image');
+              imgInput.addEventListener('input', (e) => {
+                const img = row.querySelector('.img-thumb');
+                const v = e.target.value.trim();
+                if (!v) { img.style.display = 'none'; img.src = ''; return; }
+                img.style.display = ''; img.src = v;
+              });
+              // wire drag handlers
+              row.addEventListener('dragstart', handleDragStart);
+              row.addEventListener('dragover', handleDragOver);
+              row.addEventListener('dragleave', handleDragLeave);
+              row.addEventListener('drop', handleDrop);
+              row.addEventListener('dragend', handleDragEnd);
+            };
+          } catch (err) { console.error(err); alert('Failed to load products'); }
+        });
+
+        // Modal helper and banner
+        function showModal(message, onConfirm){
+          $qs('#modal-message').textContent = message;
+          const bd = $qs('#modal-backdrop'); bd.style.display = 'flex';
+          function cleanup(){ bd.style.display = 'none'; $qs('#modal-confirm').removeEventListener('click', confirmFn); $qs('#modal-cancel').removeEventListener('click', cancelFn); }
+          function confirmFn(){ cleanup(); onConfirm && onConfirm(); }
+          function cancelFn(){ cleanup(); }
+          $qs('#modal-confirm').addEventListener('click', confirmFn);
+          $qs('#modal-cancel').addEventListener('click', cancelFn);
+        }
+
+        function showBanner(msg, type){ const b = $qs('#global-banner'); b.className = `banner ${type==='error'?'error':'info'}`; b.textContent = msg; b.style.display = 'block'; setTimeout(()=>{ b.style.display = 'none'; }, 6000); }
+
+        function printOrder(ord) {
+          const win = window.open('', '_blank');
+          if (!win) return;
+          const itemsHtml = ord.items.map(i=>`<tr><td>${i.name}</td><td>${i.quantity||1}</td><td>$${(i.price||0).toFixed(2)}</td></tr>`).join('');
+          const total = ((ord.amount_cents||0)/100).toFixed(2);
+          win.document.write(`<!doctype html><html><head><title>Order ${ord.id}</title><link rel="stylesheet" href="/styles/main.css"><style>body{padding:20px;font-family:system-ui,Segoe UI,Roboto,Arial;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ccc;padding:6px;text-align:left;}</style></head><body><h1>Order #${ord.id}</h1><p>User ID: ${ord.user_id}</p><p>Status: ${ord.status}</p><p>Created: ${ord.created_at}</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead><tbody>${itemsHtml}</tbody></table><p><strong>Total: $${total}</strong></p></body></html>`);
+          win.document.close();
+          win.focus();
+          win.print();
+        }
+
+        // order detail modal helpers
+        function showOrderModal(ord) {
+          $qs('#order-detail-id').textContent = ord.id;
+          // build content
+          let html = `<p>User ID: ${ord.user_id}</p><p>Status: ${ord.status}</p><p>Created: ${ord.created_at}</p>`;
+          html += '<table style="width:100%;border-collapse:collapse;margin-top:8px"><thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead><tbody>';
+          ord.items.forEach(i=> {
+            html += `<tr><td>${i.name}</td><td>${i.quantity||1}</td><td>$${(i.price||0).toFixed(2)}</td></tr>`;
+          });
+          html += `</tbody></table><p><strong>Total: $${((ord.amount_cents||0)/100).toFixed(2)}</strong></p>`;
+          $qs('#order-detail-content').innerHTML = html;
+          $qs('#order-modal-backdrop').style.display = 'flex';
+          $qs('#order-modal-ship').onclick = async () => {
+            try {
+              const token = $qs('#admin-token').value.trim();
+              const resp = await fetch(apiBase + '/admin/update-order', {
+                method: 'POST',
+                headers: { 'Content-Type':'application/json', 'X-Admin-Token': token },
+                body: JSON.stringify({ id: ord.id, status: 'shipped' })
+              });
+              const json = await resp.json();
+              if (json && json.ok) {
+                showBanner('Order marked shipped','info');
+                ord.status = 'shipped';
+                $qs('#order-detail-content').querySelector('p:nth-child(2)').textContent = `Status: shipped`;
+                // update row status
+                const sel = document.querySelector(`tr[data-id="${ord.id}"] .order-status`);
+                if (sel) sel.value = 'shipped';
+              } else {
+                showBanner(json.error||'Update failed','error');
+              }
+            } catch(e) { console.error(e); showBanner('Update failed','error'); }
+          };
+        }
+        $qs('#order-modal-close').addEventListener('click', () => { $qs('#order-modal-backdrop').style.display='none'; });
+        // update badge when status dropdown changes
+        document.addEventListener('change', (e)=>{
+          if(e.target.matches('.order-status')){
+            const sel = e.target;
+            const tr = sel.closest('tr');
+            const badge = tr.querySelector('.status-badge');
+            if(badge) badge.className = `status-badge status-${sel.value}`;
+          }
+        });
+
+        // Change tracking helpers
+        function markRowDirty(tr){ if(!tr) return; tr.classList.add('row-dirty'); }
+        function clearRowDirty(tr){ if(!tr) return; tr.classList.remove('row-dirty'); }
+        function checkFormDirty(){ const anyDirty = !!document.querySelector('#products-area tbody tr.row-dirty'); $qs('#btn-save-products').disabled = !anyDirty; }
+
+        // Undo history UI
+        function renderUndoHistory(){ const container = $qs('#undo-list'); if(!container) return; if(!undoStack.length){ $qs('#undo-history').style.display='none'; return; } $qs('#undo-history').style.display='block'; const html = ['<ul>']; undoStack.slice().reverse().forEach((e, idx)=>{ const t = new Date(e.time).toLocaleString(); html.push(`<li>${t} <button class="restore-undo" data-undo-index="${undoStack.length-1-idx}">Restore</button></li>`); }); html.push('</ul>'); container.innerHTML = html.join(''); document.querySelectorAll('.restore-undo').forEach(b=> b.addEventListener('click', async (ev)=>{ const i = parseInt(ev.currentTarget.dataset.undoIndex,10); const entry = undoStack[i]; if(!entry) return; showModal('Restore this saved state? This will overwrite current products.', async ()=>{ const token = $qs('#admin-token').value.trim(); if(!token) return showBanner('Enter admin token to restore','error'); try{ const r = await fetch(apiBase + '/admin/save-products', { method: 'POST', headers: { 'Content-Type':'application/json', 'X-Admin-Token': token }, body: JSON.stringify({ products: entry.products }) }); const j = await r.json(); if(j && j.ok) { showBanner('Restore successful','info'); // remove restored entry from stack
+              undoStack.splice(i,1); renderUndoHistory(); $qs('#btn-load-products').click(); } else showBanner(j.error || 'Restore failed','error'); } catch(err){ console.error(err); showBanner('Restore failed','error'); } }); })); }
+
+        // utility: simple URL validator
+        function isValidHttpUrl(str){ try{ const u = new URL(str); return u.protocol === 'http:' || u.protocol === 'https:'; }catch(e){return false;} }
+
+        $qs('#btn-save-products').addEventListener('click', async () => {
+          $qs('#products-errors').textContent = '';
+          const token = $qs('#admin-token').value.trim(); if (!token) { $qs('#products-errors').textContent = 'Enter admin token'; return; }
+          // fetch current server products as a backup so we can undo if needed
+          try {
+            const backupResp = await fetch(apiBase + '/products');
+            const backupJson = await backupResp.json();
+            lastBackupProducts = backupJson.products || null;
+            lastBackupTime = new Date().toISOString();
+            if (lastBackupProducts) {
+              undoStack.push({ products: lastBackupProducts, time: lastBackupTime });
+              if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+            }
+          } catch (e) { console.warn('Could not fetch backup before save', e); }
+          const rows = Array.from(document.querySelectorAll('#products-area tbody tr'));
+          const products = [];
+          const errors = [];
+          rows.forEach((row, idx) => {
+            const idCell = row.querySelector('td');
+            const id = idCell ? idCell.textContent : `row_${idx}`;
+            const name = row.querySelector('.prod-name')?.value || '';
+            const priceRaw = row.querySelector('.prod-price')?.value || '0';
+            const image = row.querySelector('.prod-image')?.value || '';
+            const permalink = row.querySelector('.prod-permalink')?.value || '';
+            const published = !!row.querySelector('.prod-published')?.checked;
+            const description = row.querySelector('.prod-desc')?.value || '';
+            // row-level validation
+            row.style.outline = '';
+            if (!name) errors.push(`Row ${idx+1}: Name is required`);
+            const price = parseFloat(priceRaw);
+            if (isNaN(price) || price < 0) errors.push(`Row ${idx+1} (${name||id}): Price must be a non-negative number`);
+            if (image && !isValidHttpUrl(image)) errors.push(`Row ${idx+1} (${name||id}): Image must be a valid URL`);
+            if (permalink && !isValidHttpUrl(permalink)) errors.push(`Row ${idx+1} (${name||id}): Permalink must be a valid URL`);
+            products.push({ id, name, price, image, permalink, published, description });
+          });
+          if (errors.length) {
+            $qs('#products-errors').innerHTML = errors.map(e=>`• ${e}`).join('<br>');
+            // highlight rows with issues
+            rows.forEach((row, idx) => {
+              const rowErrors = errors.filter(e => e.startsWith(`Row ${idx+1}:`) || e.includes(`Row ${idx+1} (`));
+              row.style.outline = rowErrors.length ? '2px solid #b00020' : '';
+            });
+            return;
+          }
+          try {
+            $qs('#btn-save-products').disabled = true;
+            const resp = await fetch(apiBase + '/admin/save-products', { method: 'POST', headers: { 'Content-Type':'application/json', 'X-Admin-Token': token }, body: JSON.stringify({ products }) });
+            const json = await resp.json();
+            if (json && json.ok) {
+              const timeText = lastBackupTime ? new Date(lastBackupTime).toLocaleString() : '';
+              showBanner(`Saved ${json.count} products. Undo available (${timeText})`, 'info');
+              $qs('#btn-undo').style.display = undoStack.length ? 'inline-block' : 'none';
+              // reload products to show saved values
+              $qs('#btn-load-products').click();
+            } else { showBanner(json.error || 'Save failed','error'); }
+          } catch (err) { console.error(err); showBanner('Save failed','error'); }
+          finally { $qs('#btn-save-products').disabled = false; }
+        });
+      }catch(err){
+        console.error(err);
+        alert('Failed to load admin data (check token and server)');
+      }
+    }
+    $qs('#btn-load').addEventListener('click', loadAdmin);
+  </script>
+</body>
+</html>
