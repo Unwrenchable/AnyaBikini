@@ -79,18 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // --- Quick Add to Cart ---
-  let cartCount = 0;
-  const cartCountEl = document.querySelector('.cart-count');
-
-  document.querySelectorAll('.product-quick-add').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      cartCount++;
-      if (cartCountEl) cartCountEl.textContent = cartCount;
-      const productName = btn.closest('.product-card').querySelector('.product-name')?.textContent || 'Item';
-      showToast(`✓ ${productName} added to cart`);
-    });
-  });
+  // Note: Cart functionality is handled by the main cart system below (lines 345+)
+  // This is just for static product cards that don't use the full cart system yet
 
   // --- Wishlist (API-backed) ---
   async function fetchWishlist() {
@@ -291,6 +281,60 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.matches('.cart-close')) toggleCart(false);
   });
 
+  // User account button click handler
+  const userAccountBtn = document.getElementById('user-account-btn');
+  if (userAccountBtn) {
+    userAccountBtn.addEventListener('click', async () => {
+      try {
+        const profile = await fetchJSON(API_BASE + '/profile');
+        if (profile && profile.user) {
+          // User is logged in - show account menu or profile
+          if (confirm(`Logged in as ${profile.user.email}. Sign out?`)) {
+            await fetchJSON(API_BASE + '/logout', { method: 'POST' });
+            showToast('Signed out');
+            updateUserAccountUI();
+            if (window.syncWishlistUI) window.syncWishlistUI();
+          }
+        } else {
+          // User is not logged in - open auth modal
+          openAuthModal(false);
+        }
+      } catch (err) {
+        // Not logged in
+        openAuthModal(false);
+      }
+    });
+  }
+
+  // Update user account UI based on login status
+  async function updateUserAccountUI() {
+    const btn = document.getElementById('user-account-btn');
+    if (!btn) return;
+
+    try {
+      const profile = await fetchJSON(API_BASE + '/profile');
+      if (profile && profile.user) {
+        // User is logged in
+        btn.style.background = 'var(--color-primary-light)';
+        btn.style.color = 'var(--color-white)';
+        btn.setAttribute('title', `Signed in as ${profile.user.email}`);
+        btn.setAttribute('aria-label', `Account: ${profile.user.email}`);
+      } else {
+        // User is not logged in
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.setAttribute('title', 'Sign in');
+        btn.setAttribute('aria-label', 'Account');
+      }
+    } catch (err) {
+      // Not logged in
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.setAttribute('title', 'Sign in');
+      btn.setAttribute('aria-label', 'Account');
+    }
+  }
+
   // register
   $qs('#register-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -299,7 +343,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = form.querySelector('input[name="email"]').value;
     const password = form.querySelector('input[name="password"]').value;
     const resp = await fetchJSON(API_BASE + '/register', { method: 'POST', body: JSON.stringify({ name, email, password }) });
-    if (resp && resp.ok) { closeAuthModal(); showToast('Account created — you are signed in.'); }
+    if (resp && resp.ok) {
+      closeAuthModal();
+      showToast('Account created — you are signed in.');
+      updateUserAccountUI();
+      if (window.syncWishlistUI) window.syncWishlistUI();
+    }
     else showToast(resp.error || 'Registration failed');
   });
 
@@ -310,7 +359,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = form.querySelector('input[name="email"]').value;
     const password = form.querySelector('input[name="password"]').value;
     const resp = await fetchJSON(API_BASE + '/login', { method: 'POST', body: JSON.stringify({ email, password }) });
-    if (resp && resp.ok) { closeAuthModal(); showToast('Signed in'); }
+    if (resp && resp.ok) {
+      closeAuthModal();
+      showToast('Signed in');
+      updateUserAccountUI();
+      if (window.syncWishlistUI) window.syncWishlistUI();
+    }
     else showToast(resp.error || 'Sign in failed');
   });
 
@@ -377,6 +431,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const isOpen = drawer.style.display !== 'none';
     const want = typeof show === 'boolean' ? show : !isOpen;
     drawer.style.display = want ? 'block' : 'none';
+    drawer.setAttribute('aria-hidden', want ? 'false' : 'true');
+    if (want) updateCartUI(); // Update cart contents when opening
   }
 
   // Hook quick add buttons to cart
@@ -455,6 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('DOMContentLoaded', async () => {
     await loadConfig();
     updateCartUI();
+    updateUserAccountUI();
     loadInstagram();
   });
   // Product modal

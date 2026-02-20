@@ -1639,3 +1639,241 @@ section {
     padding: 0 1.2rem;
   }
 }
+
+/* --- Cart Drawer --- */
+.cart-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  max-width: 420px;
+  height: 100vh;
+  background: var(--color-white);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+
+.cart-drawer[style*="display: block"] {
+  transform: translateX(0);
+}
+
+.cart-inner {
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cart-close {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-size: 1.8rem;
+  color: var(--color-mid);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.cart-close:hover {
+  color: var(--color-dark);
+}
+
+.cart-inner h3 {
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-display);
+}
+
+#cart-items {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1.5rem;
+}
+
+.cart-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cart-item-name {
+  font-weight: 500;
+  color: var(--color-dark);
+  flex: 1;
+}
+
+.cart-item-meta {
+  color: var(--color-mid);
+  font-size: 0.9rem;
+}
+
+.cart-summary {
+  border-top: 2px solid var(--color-dark);
+  padding-top: 1.5rem;
+}
+
+#cart-total {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--color-dark);
+}
+
+.cart-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cart-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* --- Modals --- */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal[style*="display: block"] {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-inner {
+  background: var(--color-white);
+  border-radius: 8px;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-close {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  font-size: 1.8rem;
+  color: var(--color-mid);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: var(--color-dark);
+}
+
+/* --- Auth Forms --- */
+.auth-forms {
+  margin-top: 1rem;
+}
+
+.auth-form h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-display);
+  color: var(--color-dark);
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  transition: border-color 0.2s;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.auth-form .btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.auth-toggle {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+  text-align: center;
+}
+
+.auth-toggle button {
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  transition: color 0.2s;
+}
+
+.auth-toggle button:hover {
+  color: var(--color-primary-light);
+  text-decoration: underline;
+}
+
+/* --- User Account Indicator --- */
+.user-account-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-cream);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-dark);
+  transition: background 0.2s;
+}
+
+.user-account-btn:hover {
+  background: var(--color-sand);
+}
+
+.user-account-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 768px) {
+  .cart-drawer {
+    max-width: 100%;
+  }
+
+  .modal-inner {
+    padding: 2rem 1.5rem;
+  }
+}
