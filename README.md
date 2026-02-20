@@ -157,34 +157,34 @@ AnyaBikini/
 
 3. **Configure environment variables**
 
-   Create a `.env` file in the root directory:
+   Copy `server/.env.example` to a top-level `.env` file and fill in values:
    ```bash
-   # Required
-   JWT_SECRET=your_random_secret_key_minimum_32_characters
-   ADMIN_TOKEN=your_secure_admin_token
-   STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
-   STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
-
-   # Optional
-   INSTAGRAM_ACCESS_TOKEN=your_instagram_business_token
-   INSTAGRAM_USER_ID=your_instagram_user_id
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_USER=your_email@gmail.com
-   SMTP_PASS=your_app_password
-   FROM_EMAIL=noreply@anyabikini.com
-   DATABASE_PATH=./data/db.json
-   PORT=3000
+   cp server/.env.example .env
+   # then edit .env with your secrets
    ```
 
-4. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+   These same variable names should be set in your Vercel project as
+   Environment Variables when you deploy. Be aware that Vercel's filesystem is
+   read-only/ephemeral once deployed, so any `DATABASE_PATH` pointing at a local
+   JSON file will not persist across cold starts. For production use you should
+   switch to a managed database (PostgreSQL, MongoDB, etc.).
+
+4. **Start the local development server**
+   - If you want to run the **Express** server locally (mimics previous setup):
+     ```bash
+     npm run dev            # starts server/index.js on PORT (defaults to 3000)
+     ```
+   - To run the **serverless environment** exactly as Vercel will:
+     ```bash
+     npx vercel dev         # you'll need the Vercel CLI installed and logged in
+     ```
+     `vercel dev` serves the static `public/` folder and spins up the `/api`
+     functions, which are what Vercel uses in production.
 
 5. **Open in browser**
 
-   Navigate to [http://localhost:3000](http://localhost:3000)
+   Navigate to [http://localhost:3000](http://localhost:3000) (same URL works for
+   both modes).
 
 ### Build for Production
 
