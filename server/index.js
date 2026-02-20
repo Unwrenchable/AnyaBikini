@@ -11,7 +11,9 @@ console.log('ADMIN_TOKEN from env =', process.env.ADMIN_TOKEN);
 
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
-const DB_JSON = process.env.DATABASE_PATH || './data/db.json';
+// database file path; default to server/data/db.json so that
+// services and the server agree. Environment variable can override.
+const DB_JSON = process.env.DATABASE_PATH || path.join(__dirname, 'data', 'db.json');
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 let stripe = null;
