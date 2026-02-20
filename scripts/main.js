@@ -155,14 +155,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Newsletter Form ---
   const newsletterForm = document.querySelector('.newsletter-form');
   if (newsletterForm) {
-    newsletterForm.addEventListener('submit', (e) => {
+    newsletterForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = newsletterForm.querySelector('.newsletter-input');
-      if (input && input.value.includes('@')) {
-        showToast('🌊 Welcome! Check your email for a special offer.');
-        input.value = '';
-      } else {
+      const email = input && input.value.trim();
+      if (!email || !email.includes('@')) {
         showToast('Please enter a valid email address.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/newsletter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('🌊 Welcome! Check your email for a special offer.');
+          input.value = '';
+        } else {
+          showToast(data.error || 'Subscription failed.');
+        }
+      } catch (err) {
+        showToast('Network error. Please try again.');
       }
     });
   }
