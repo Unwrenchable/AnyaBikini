@@ -18,28 +18,53 @@
 
 ## Local Development
 
-### 1. Clone the repo and set up environment variables
+### 1. Clone the repo and install dependencies
 
 ```bash
 git clone <your-repo-url>
 cd AnyaBikini
-cp server/.env.example server/.env
-# Edit server/.env and fill in:
-#   JWT_SECRET, ADMIN_TOKEN, STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, INSTAGRAM_ACCESS_TOKEN, INSTAGRAM_USER_ID
-```
-
-### 2. Install server dependencies
-
-```bash
-cd server
 npm install
 ```
+
+### 2. Set up environment variables
+
+Create a `.env` file in the root directory:
+
+```bash
+# Required for authentication
+JWT_SECRET=your_random_secret_key_here
+ADMIN_TOKEN=your_admin_token_here
+
+# Required for Stripe payments
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+
+# Optional: Instagram integration
+INSTAGRAM_ACCESS_TOKEN=your_instagram_token
+INSTAGRAM_USER_ID=your_instagram_user_id
+
+# Optional: Email configuration (for verification emails)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+FROM_EMAIL=noreply@anyabikini.com
+
+# Database path (default: ./data/db.json)
+DATABASE_PATH=./data/db.json
+
+# Server port (default: 3000)
+PORT=3000
+```
+
+**Important**: Never commit your `.env` file to version control!
 
 ### 3. Start the server
 
 ```bash
-# For development (auto-restart):
+# For development:
 npm run dev
+
 # Or for production:
 npm start
 ```
@@ -263,10 +288,41 @@ If you want to prioritize or explore any of these, I can help you plan or protot
 
 ## Security Notes
 
+### Authentication System
+
+The app includes a complete JWT-based authentication system:
+
+**Features:**
+- User registration with email validation and password strength requirements
+- Secure login with bcrypt password hashing
+- JWT tokens stored in HTTP-only cookies for security
+- Email verification (optional, requires SMTP configuration)
+- Profile management
+- Protected routes for authenticated users
+
+**Password Requirements:**
+- Minimum 6 characters
+- Passwords are hashed using bcryptjs with 10 salt rounds
+
+**Cookie Security:**
+- HTTP-only cookies prevent XSS attacks
+- SameSite=Lax prevents CSRF attacks
+- 30-day expiration for user convenience
+- Tokens are signed with JWT_SECRET
+
+**To test authentication locally:**
+1. Start the server
+2. Open the homepage and click the user account icon
+3. Create a new account or sign in
+4. The account button will change color when logged in
+
+### General Security Best Practices
+
 - Never commit `.env` or secrets to git.
-- Use strong, unique values for all secrets.
+- Use strong, unique values for all secrets (especially JWT_SECRET).
 - Keep dependencies up to date (`npm audit` regularly).
-- Use HTTPS in production.
+- Use HTTPS in production (required for secure cookies).
+- Passwords are never stored in plain text.
 
 ---
 

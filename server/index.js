@@ -104,7 +104,17 @@ function createOrder({ user_id, items, amount_cents }) {
 
 
 const app = express();
-app.use(express.json());
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
+
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 
@@ -132,6 +142,17 @@ function authMiddleware(req, res, next) {
 app.post('/api/register', async (req, res) => {
   const { email, password, name } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+
+  // Email validation
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
+  // Password strength validation
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+
   try {
     const hashed = await bcrypt.hash(password, 10);
     const user = createUser({ email, passwordHash: hashed, name });
@@ -148,11 +169,11 @@ app.post('/api/register', async (req, res) => {
       console.warn('verify email send failed', e && e.message);
     }
     const token = signToken({ id: user.id, email });
-    res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
+    res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 2592000000 });
     res.json({ ok: true, user: { id: user.id, email: user.email, name: user.name } });
   } catch (err) {
     if (err.message === 'exists') return res.status(400).json({ error: 'Email already exists' });
-    console.error(err);
+    console.error('Register error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -167,10 +188,10 @@ app.post('/api/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ error: 'Invalid credentials' });
     const token = signToken({ id: user.id, email: user.email });
-    res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
+    res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 2592000000 });
     res.json({ ok: true, user: { id: user.id, email: user.email, name: user.name } });
   } catch (err) {
-    console.error(err);
+    console.error('Login error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
