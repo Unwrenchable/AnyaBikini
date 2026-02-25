@@ -2,6 +2,7 @@
 // Body: { email: string }
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const nodemailer = require('nodemailer');
 
 // Store newsletter subscribers in a file. Allow overriding via env var
