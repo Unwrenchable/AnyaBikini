@@ -146,7 +146,7 @@ AnyaBikini/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/AnyaBikini.git
+   git clone https://github.com/Unwrenchable/AnyaBikini.git
    cd AnyaBikini
    ```
 
@@ -160,9 +160,9 @@ AnyaBikini/
    The `.env` file is used by the backend/serverless functions—not by the static
    front-end code. Front-end settings (Stripe publishable key, API base path,
    etc.) are provided via meta tags or served by an API endpoint.
-   Copy `server/.env.example` to a top-level `.env` file and fill in values:
+   Copy `.env.example` to a top-level `.env` file and fill in values:
    ```bash
-   cp server/.env.example .env
+   cp .env.example .env
    # then edit .env with your secrets
    ```
 
@@ -523,8 +523,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support & Contact
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/AnyaBikini/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/AnyaBikini/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Unwrenchable/AnyaBikini/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Unwrenchable/AnyaBikini/discussions)
 - **Email**: support@anyabikini.com
 
 ---
@@ -587,5 +587,5 @@ A: Yes, the MIT license allows full customization and white-labeling.
 <p align="center">
   <a href="https://www.anyabikini.com">Website</a> •
   <a href="https://www.instagram.com/anyabikini">Instagram</a> •
-  <a href="https://github.com/yourusername/AnyaBikini">GitHub</a>
+  <a href="https://github.com/Unwrenchable/AnyaBikini">GitHub</a>
 </p>

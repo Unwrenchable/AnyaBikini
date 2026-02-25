@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Primary meta -->
+  <title>Anya Bikini — Handcrafted Swimwear</title>
+  <meta name="description" content="Discover Anya Bikini — luxury handcrafted swimwear designed for the modern woman. Shop sets, one-pieces, cover-ups and more." />
+  <meta name="theme-color" content="#c9785c" />
+  <link rel="canonical" href="https://anyabikini.com/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://anyabikini.com/" />
+  <meta property="og:title"       content="Anya Bikini — Handcrafted Swimwear" />
+  <meta property="og:description" content="Luxury handcrafted swimwear designed for the modern woman. Shop sets, one-pieces, cover-ups and more." />
+  <meta property="og:image"       content="https://anyabikini.com/images/og-cover.jpg" />
+  <meta property="og:site_name"   content="Anya Bikini" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="Anya Bikini — Handcrafted Swimwear" />
+  <meta name="twitter:description" content="Luxury handcrafted swimwear designed for the modern woman." />
+  <meta name="twitter:image"       content="https://anyabikini.com/images/og-cover.jpg" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap"
+  />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/styles/main.css" />
+
+  <!-- Stripe — loaded early so it's ready for checkout -->
+  <script src="https://js.stripe.com/v3/" defer></script>
+</head>
+<body>
+
+  <!-- ── Navigation ──────────────────────────────────────────── -->
+  <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+    <div class="nav-inner">
+
+      <!-- Logo -->
+      <a href="/" class="nav-logo" aria-label="Anya Bikini home">
+        Anya <span>Bikini</span>
+      </a>
+
+      <!-- Desktop links -->
+      <ul class="nav-links" role="list">
+        <li><a href="#hero"       class="active">Home</a></li>
+        <li><a href="#products">Collections</a></li>
+        <li><a href="#instagram">About</a></li>
+        <li><a href="#newsletter">Contact</a></li>
+      </ul>
+
+      <!-- Actions -->
+      <div class="nav-actions">
+        <!-- Cart -->
+        <button
+          id="cart-btn"
+          class="nav-icon-btn"
+          aria-label="Shopping cart"
+          aria-expanded="false"
+          aria-controls="cart-drawer"
+        >
+          <!-- shopping-bag icon -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <span class="cart-badge" id="cart-badge" aria-live="polite" aria-label="items in cart">0</span>
+        </button>
+
+        <!-- User account -->
+        <button
+          id="user-account-btn"
+          class="nav-icon-btn"
+          aria-label="My account"
+          aria-expanded="false"
+          aria-controls="auth-modal"
+        >
+          <!-- user icon -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
+
+        <!-- Mobile hamburger -->
+        <button
+          class="nav-hamburger"
+          id="nav-hamburger"
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="mobile-nav"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="3" y1="6"  x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile nav drawer -->
+  <div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile navigation" aria-modal="true">
+    <div class="mobile-nav-overlay" id="mobile-nav-overlay" aria-hidden="true"></div>
+    <div class="mobile-nav-panel">
+      <button class="nav-icon-btn mobile-nav-close" id="mobile-nav-close" aria-label="Close menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" fill="none" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6"  y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <nav class="mobile-nav-links" aria-label="Mobile navigation links">
+        <a href="#hero">Home</a>
+        <a href="#products">Collections</a>
+        <a href="#instagram">About</a>
+        <a href="#newsletter">Contact</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ── Hero ────────────────────────────────────────────────── -->
+  <section class="hero" id="hero" aria-label="Hero banner">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">New Summer Collection</p>
+      <h1 class="hero-title">Crafted for the&nbsp;Sun</h1>
+      <p class="hero-subtitle">
+        Handcrafted swimwear made with intention — every piece designed to
+        celebrate the beauty of movement, warmth, and the open sea.
+      </p>
+      <div class="hero-cta">
+        <a href="#products" class="btn btn-primary btn-lg">Shop Collections</a>
+        <a href="#instagram" class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,0.65)">Our Story</a>
+      </div>
+    </div>
+    <div class="hero-scroll-hint" aria-hidden="true">
+      <span></span>
+      Scroll
+    </div>
+  </section>
+
+  <!-- ── Products ─────────────────────────────────────────────── -->
+  <section class="products-section" id="products" aria-label="Product catalogue">
+    <div class="container">
+      <header class="section-header reveal">
+        <p class="section-eyebrow">The Collection</p>
+        <h2 class="section-title">This Season's Favourites</h2>
+        <div class="divider"></div>
+      </header>
+
+      <!-- Category filters -->
+      <div class="category-filters" id="category-filters" role="group" aria-label="Filter by category">
+        <button class="filter-btn active" data-category="All">All</button>
+        <button class="filter-btn" data-category="Sets">Sets</button>
+        <button class="filter-btn" data-category="Tops">Tops</button>
+        <button class="filter-btn" data-category="Bottoms">Bottoms</button>
+        <button class="filter-btn" data-category="One Pieces">One Pieces</button>
+        <button class="filter-btn" data-category="Cover Ups">Cover Ups</button>
+      </div>
+
+      <!-- Product grid — populated by JS -->
+      <div
+        class="product-grid"
+        id="product-grid"
+        role="list"
+        aria-label="Products"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <!-- Loading skeleton -->
+        <div class="product-grid-loading">
+          <div class="spinner" aria-hidden="true"></div>
+          <p class="sr-only">Loading products…</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Instagram Feed ───────────────────────────────────────── -->
+  <section class="instagram-section" id="instagram" aria-label="Instagram gallery">
+    <div class="container">
+      <header class="section-header reveal">
+        <p class="section-eyebrow">@anyabikini</p>
+        <h2 class="section-title">Follow the Journey</h2>
+        <div class="divider"></div>
+      </header>
+      <div class="instagram-grid" id="instagram-feed" role="list" aria-label="Instagram photos">
+        <p class="instagram-placeholder" aria-live="polite">Loading…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Newsletter ───────────────────────────────────────────── -->
+  <section class="newsletter-section" id="newsletter" aria-label="Newsletter sign-up">
+    <div class="section-eyebrow">Stay in the Loop</div>
+    <h2 class="section-title">Sun, Sand &amp; New Arrivals</h2>
+    <p>Subscribe for early access to new drops, exclusive offers, and sun-soaked inspiration.</p>
+    <form
+      class="newsletter-form"
+      id="newsletter-form"
+      novalidate
+      aria-label="Newsletter subscription"
+    >
+      <label for="newsletter-email" class="sr-only">Email address</label>
+      <input
+        type="email"
+        id="newsletter-email"
+        name="email"
+        placeholder="your@email.com"
+        autocomplete="email"
+        required
+        aria-required="true"
+      />
+      <button type="submit" class="btn btn-primary">Subscribe</button>
+    </form>
+  </section>
+
+  <!-- ── Footer ───────────────────────────────────────────────── -->
+  <footer class="site-footer" aria-label="Site footer">
+    <div class="container">
+      <div class="footer-inner">
+        <!-- Brand -->
+        <div class="footer-brand">
+          <a href="/" class="nav-logo" aria-label="Anya Bikini home">
+            Anya <span>Bikini</span>
+          </a>
+          <p>Handcrafted swimwear made with care — for every woman, every shore.</p>
+        </div>
+
+        <!-- Shop links -->
+        <div class="footer-col">
+          <h4>Shop</h4>
+          <ul>
+            <li><a href="#products">All Collections</a></li>
+            <li><a href="#products">Sets</a></li>
+            <li><a href="#products">One Pieces</a></li>
+            <li><a href="#products">Cover Ups</a></li>
+          </ul>
+        </div>
+
+        <!-- Info links -->
+        <div class="footer-col">
+          <h4>Help</h4>
+          <ul>
+            <li><a href="#">Sizing Guide</a></li>
+            <li><a href="#">Returns &amp; Exchanges</a></li>
+            <li><a href="#">Shipping</a></li>
+            <li><a href="#">FAQ</a></li>
+          </ul>
+        </div>
+
+        <!-- Company links -->
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">Our Story</a></li>
+            <li><a href="#">Sustainability</a></li>
+            <li><a href="#">Press</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; <span id="footer-year"></span> Anya Bikini. All rights reserved.</p>
+        <div class="footer-social" aria-label="Social media links">
+          <!-- Instagram -->
+          <a href="https://instagram.com/anyabikini" aria-label="Instagram" rel="noopener noreferrer" target="_blank">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+          </a>
+          <!-- TikTok-ish icon (using play icon as placeholder) -->
+          <a href="#" aria-label="TikTok" rel="noopener noreferrer" target="_blank">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 18V5l12-2v13"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="18" cy="16" r="3"/>
+            </svg>
+          </a>
+          <!-- Pinterest -->
+          <a href="#" aria-label="Pinterest" rel="noopener noreferrer" target="_blank">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.65 7.86 6.39 9.29-.09-.78-.17-1.98.03-2.83.19-.77 1.28-5.44 1.28-5.44s-.33-.65-.33-1.62c0-1.52.88-2.66 1.97-2.66.93 0 1.38.7 1.38 1.53 0 .93-.6 2.33-.9 3.63-.26 1.08.54 1.96 1.6 1.96 1.91 0 3.19-2.45 3.19-5.35 0-2.21-1.48-3.86-4.16-3.86-3.03 0-4.91 2.26-4.91 4.78 0 .87.26 1.47.67 1.94.18.22.21.3.15.55-.05.18-.16.62-.2.79-.07.26-.28.35-.51.26-1.41-.58-2.07-2.13-2.07-3.87 0-2.89 2.44-6.37 7.27-6.37 3.89 0 6.45 2.82 6.45 5.85 0 4.01-2.22 7.01-5.5 7.01-1.1 0-2.14-.59-2.49-1.26l-.68 2.63c-.25.94-.92 2.12-1.37 2.83.43.13.89.2 1.36.2 5.52 0 10-4.48 10-10S17.52 2 12 2z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Cart Drawer ───────────────────────────────────────────── -->
+  <div class="cart-overlay" id="cart-overlay" aria-hidden="true"></div>
+
+  <aside
+    class="cart-drawer"
+    id="cart-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Shopping cart"
+    aria-hidden="true"
+  >
+    <div class="cart-header">
+      <h2>Your Cart</h2>
+      <button class="cart-close-btn" id="cart-close-btn" aria-label="Close cart">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6"  y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Cart item list -->
+    <ul class="cart-items" id="cart-items-list" aria-label="Cart items" role="list"></ul>
+
+    <!-- Footer (totals + checkout) -->
+    <div class="cart-footer" id="cart-footer" hidden>
+      <div class="cart-subtotal">
+        <span>Subtotal</span>
+        <strong id="cart-total">$0.00</strong>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" id="checkout-btn" aria-label="Proceed to checkout">
+        Checkout
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Auth Modal ────────────────────────────────────────────── -->
+  <div
+    class="modal-backdrop"
+    id="auth-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Account login and registration"
+    aria-hidden="true"
+  >
+    <div class="modal-panel">
+      <div class="modal-inner">
+        <div class="modal-header">
+          <h2 class="modal-title" id="auth-modal-title">My Account</h2>
+          <button class="modal-close-btn" id="auth-modal-close" aria-label="Close account dialog">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6"  y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="auth-tabs" role="tablist" aria-label="Login or register">
+          <button
+            class="auth-tab-btn active"
+            id="tab-login"
+            role="tab"
+            aria-selected="true"
+            aria-controls="panel-login"
+          >Log In</button>
+          <button
+            class="auth-tab-btn"
+            id="tab-register"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-register"
+          >Register</button>
+        </div>
+
+        <!-- Login form -->
+        <form
+          class="auth-form active"
+          id="panel-login"
+          role="tabpanel"
+          aria-labelledby="tab-login"
+          novalidate
+        >
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email</label>
+            <input
+              class="form-input"
+              type="email"
+              id="login-email"
+              name="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              required
+              aria-required="true"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input
+              class="form-input"
+              type="password"
+              id="login-password"
+              name="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              required
+              aria-required="true"
+            />
+          </div>
+          <p class="form-error" id="login-error" role="alert" aria-live="polite"></p>
+          <button type="submit" class="btn btn-primary btn-block">Log In</button>
+          <p class="form-footer">
+            No account?
+            <button type="button" class="form-link" id="switch-to-register">Create one</button>
+          </p>
+        </form>
+
+        <!-- Register form -->
+        <form
+          class="auth-form"
+          id="panel-register"
+          role="tabpanel"
+          aria-labelledby="tab-register"
+          novalidate
+        >
+          <div class="form-group">
+            <label class="form-label" for="register-email">Email</label>
+            <input
+              class="form-input"
+              type="email"
+              id="register-email"
+              name="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              required
+              aria-required="true"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="register-name">Full Name</label>
+            <input
+              class="form-input"
+              type="text"
+              id="register-name"
+              name="name"
+              autocomplete="name"
+              placeholder="Anya Smith"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="register-password">Password</label>
+            <input
+              class="form-input"
+              type="password"
+              id="register-password"
+              name="password"
+              autocomplete="new-password"
+              placeholder="At least 6 characters"
+              required
+              aria-required="true"
+              minlength="6"
+            />
+          </div>
+          <p class="form-error" id="register-error" role="alert" aria-live="polite"></p>
+          <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+          <p class="form-footer">
+            Already have an account?
+            <button type="button" class="form-link" id="switch-to-login">Log in</button>
+          </p>
+        </form>
+
+        <!-- Logged-in panel (hidden by default, shown when authenticated) -->
+        <div id="panel-account" hidden>
+          <p id="account-welcome" style="margin-bottom:1.5rem;font-style:italic;font-family:var(--font-heading);font-size:1.15rem;"></p>
+          <button class="btn btn-outline btn-block" id="logout-btn">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Checkout Modal ────────────────────────────────────────── -->
+  <div
+    class="modal-backdrop"
+    id="checkout-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Checkout"
+    aria-hidden="true"
+  >
+    <div class="modal-panel checkout-panel">
+      <div class="modal-inner">
+        <div class="modal-header">
+          <h2 class="modal-title">Checkout</h2>
+          <button class="modal-close-btn" id="checkout-modal-close" aria-label="Close checkout">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6"  y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <p id="checkout-summary" style="margin-bottom:1rem;font-size:0.9rem;color:var(--color-light)"></p>
+        <!-- Stripe Elements mount point -->
+        <div id="stripe-elements-container" aria-label="Payment details"></div>
+        <p class="form-error" id="checkout-error" role="alert" aria-live="polite"></p>
+        <button class="btn btn-primary btn-block btn-lg" id="stripe-pay-btn">
+          Pay Now
+        </button>
+        <p style="margin-top:1rem;text-align:center;font-size:0.75rem;color:var(--color-light)">
+          Payments are secured by Stripe. We never store your card details.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast container ──────────────────────────────────────── -->
+  <div class="toast-container" id="toast-container" aria-live="assertive" aria-atomic="false"></div>
+
+  <!-- ── Main script ──────────────────────────────────────────── -->
+  <script src="/scripts/main.js" type="module"></script>
+</body>
+</html>
