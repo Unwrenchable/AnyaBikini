@@ -1,6 +1,4 @@
 {
-  "outputDirectory": "public",
-  "buildCommand": "npm run build",
   "installCommand": "npm install",
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
