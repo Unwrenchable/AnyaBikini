@@ -1,0 +1,70 @@
+{
+  "products": [
+    {
+      "id": "sample_1",
+      "sku": "sample_1",
+      "name": "Sunrise Triangle Bikini",
+      "description": "Lightweight triangle bikini with adjustable straps. Made from quick-dry fabric.",
+      "price": 49.99,
+      "published": true,
+      "image": "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?q=80&w=800&auto=format&fit=crop",
+      "category": "Sets",
+      "source": "sample"
+    },
+    {
+      "id": "sample_2",
+      "sku": "sample_2",
+      "name": "Tropical High-Waist Bottom",
+      "description": "High-waist bottom with flattering cut and full coverage.",
+      "price": 39.00,
+      "published": true,
+      "image": "https://images.unsplash.com/photo-1493558103817-58b2924bce98?q=80&w=800&auto=format&fit=crop",
+      "category": "Bottoms",
+      "source": "sample"
+    },
+    {
+      "id": "sample_3",
+      "sku": "sample_3",
+      "name": "Ocean Wrap Cover-up",
+      "description": "Sheer wrap cover-up perfect for beach days and poolside lounging.",
+      "price": 29.50,
+      "published": true,
+      "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop",
+      "category": "Cover Ups",
+      "source": "sample"
+    },
+    {
+      "id": "sample_4",
+      "sku": "sample_4",
+      "name": "Azure String Bikini Top",
+      "description": "Classic string top with adjustable ties and minimal coverage for maximum sun.",
+      "price": 34.00,
+      "published": true,
+      "image": "https://images.unsplash.com/photo-1548142813-c348350df52b?q=80&w=800&auto=format&fit=crop",
+      "category": "Tops",
+      "source": "sample"
+    },
+    {
+      "id": "sample_5",
+      "sku": "sample_5",
+      "name": "Sunset One-Piece",
+      "description": "Elegant one-piece swimsuit with a deep V-neckline and open back.",
+      "price": 89.00,
+      "published": true,
+      "image": "https://images.unsplash.com/photo-1520006403909-838d6b92c22e?q=80&w=800&auto=format&fit=crop",
+      "category": "One Pieces",
+      "source": "sample"
+    },
+    {
+      "id": "sample_6",
+      "sku": "sample_6",
+      "name": "Coral Reef Bikini Set",
+      "description": "Complete bikini set in vibrant coral tones. Mix-and-match friendly.",
+      "price": 79.00,
+      "published": true,
+      "image": "https://images.unsplash.com/photo-1570976447640-ac859083963f?q=80&w=800&auto=format&fit=crop",
+      "category": "Sets",
+      "source": "sample"
+    }
+  ]
+}
